@@ -1,10 +1,14 @@
 #pragma once
 #include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
+#include <map>
 
 namespace engine {
 
+struct Renderer;
+
 struct Input {
-	bool keys[sf::Keyboard::KeyCount]{};
+	std::map<sf::Keyboard::Key, bool> keys;
 
 	void pollEvents(
 		Renderer &renderer); // Handles all window events (keyboard, mouse, close)

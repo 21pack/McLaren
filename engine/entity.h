@@ -1,4 +1,15 @@
+#pragma once
+#include <cstdint> 
+#include <SFML/System/Vector2.hpp> 
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics/Texture.hpp>
+
 namespace engine {
+
+struct World;
+struct Renderer;
+struct Camera;
 
 struct EntityId {
 	uint32_t index;
@@ -15,10 +26,24 @@ struct Entity {
 	float frameTime = 0.f;		// Timer for switching frames
 	float frameDuration = 0.1f; // Time between frames
 
+	std::unique_ptr<sf::Sprite> m_sprite;
+
 	virtual void update(float dt); // Object logic (movement, animation)
 	virtual void
 	render(Renderer &,
 		   const Camera &) = 0; // Rendering (must take camera into account)
+
+	virtual void setTexture(sf::Texture& texture, const sf::IntRect& rect = sf::IntRect()) {
+        if (!m_sprite) {
+            m_sprite = std::make_unique<sf::Sprite>(texture);
+        } else {
+            m_sprite->setTexture(texture);
+        }
+
+        if (rect.size.x != 0 && rect.size.y != 0) {
+            m_sprite->setTextureRect(rect);
+        }
+    }
 };
 
 } // namespace engine
