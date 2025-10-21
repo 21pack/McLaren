@@ -12,6 +12,19 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
-add_executable(main src/main.cpp)
+add_executable(main 
+    game/main.cpp
+    game/game_world.cpp
+    game/loops/game_loop.cpp
+    game/entities/player.cpp
+    engine/engine.cpp
+    engine/camera.cpp
+    engine/input.cpp
+    engine/entity.cpp
+    engine/texture.cpp
+)
+
+target_include_directories(main PRIVATE ${SFML_INCLUDE_DIR})
+
 target_compile_features(main PRIVATE cxx_std_17)
 target_link_libraries(main PRIVATE SFML::Graphics)
