@@ -28,7 +28,6 @@ add_executable(main
     engine/render.cpp
     engine/camera.cpp
     engine/input.cpp
-    engine/entity.cpp
     engine/texture.cpp
     engine/systems.cpp
 )

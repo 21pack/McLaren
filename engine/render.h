@@ -2,7 +2,6 @@
 #include "camera.h"
 #include "loop.h"
 #include "render_frame.h"
-#include "world.h"
 #include <SFML/Graphics.hpp>
 #include <mutex>
 
