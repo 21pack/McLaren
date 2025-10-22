@@ -1,13 +1,13 @@
 #pragma once
 
-#include <vector>
-#include <memory>
 #include "entity.h"
 #include "tile.h"
+#include <memory>
+#include <vector>
 
 namespace engine {
 
-struct Renderer;
+struct Render;
 struct Camera;
 struct EntityId;
 
@@ -17,8 +17,8 @@ struct EntityId;
 
 struct World {
 	virtual void update(float dt) = 0; // Updating all entities and world logic
-	virtual void draw(Renderer &r,
-					  const Camera &c) = 0; // Drawing the world (all entities)
+	virtual void collectRenderData(RenderFrame &frame,
+								   const Camera &camera) const = 0;
 	virtual const std::vector<std::unique_ptr<Entity>> &getEntities() const = 0;
 	virtual void addEntity(std::unique_ptr<Entity> entity) = 0;
 	virtual void removeEntity(EntityId id) = 0;

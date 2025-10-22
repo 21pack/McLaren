@@ -18,6 +18,7 @@ add_executable(main
     game/loops/game_loop.cpp
     game/entities/player.cpp
     engine/engine.cpp
+    engine/render.cpp
     engine/camera.cpp
     engine/input.cpp
     engine/entity.cpp

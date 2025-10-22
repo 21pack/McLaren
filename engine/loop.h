@@ -1,17 +1,19 @@
 #pragma once
-#include <memory>
 #include "input.h"
+#include <memory>
 
 namespace engine {
 
-struct Renderer;
+struct RenderFrame;
 struct Camera;
 struct Engine;
+struct World;
 
 struct ILoop {
-	virtual void init(Engine& engine) {}
-	virtual void update(Input& input, float dt) = 0; // Updating scene logic
-	virtual void draw(Renderer &renderer, Camera &camera) = 0; // Rendering the scene
+	virtual void init(Engine &engine) {}
+	virtual void update(Input &input, float dt) = 0; // Updating scene logic
+	virtual void collectRenderData(RenderFrame &frame,
+								   Camera &camera) = 0; // Rendering the scene
 	virtual bool isFinished() const = 0; // Check if the scene is finished
 	virtual void exit() {
 		m_finished = true;

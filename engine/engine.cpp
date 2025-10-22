@@ -1,43 +1,71 @@
 #include "engine.h"
-#include "input.h"
-#include "loop.h"
-#include "renderer.h"
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
+#include <thread>
 
 namespace engine {
 
 void Engine::setLoop(LoopPtr loop) {
-    activeLoop = std::move(loop);
+	activeLoop = std::move(loop);
 
-    if (activeLoop) {
-        activeLoop->init(*this);
-    }
+	if (activeLoop) {
+		activeLoop->init(*this);
+	}
 }
 
 void Engine::run() {
-    sf::Clock clock;
+	std::atomic<bool> running = true;
 
-    while (renderer.isOpen()) {
-        float dt = clock.restart().asSeconds();
+	std::thread updateThread([this, &running]() {
+		sf::Clock clock;
 
-        input.pollEvents(renderer);
+		while (render.isOpen()) {
+			float dt = clock.restart().asSeconds();
+			input.pollEvents(render);
 
-        if (activeLoop) {
-            activeLoop->update(input, dt);
+			if (!activeLoop)
+				break;
 
-            if (activeLoop->isFinished()) {
-                activeLoop.reset();   
-                renderer.closeWindow();
-            }
-        }
+			activeLoop->update(input, dt);
 
-        renderer.clear();
-        if (activeLoop) {
-            activeLoop->draw(renderer, camera);
-        }
-        renderer.present();
-    }
+			if (activeLoop->isFinished()) {
+				activeLoop.reset();
+				running = false;
+				break;
+			}
+
+			auto newFrame = render.collectFrame(*activeLoop, camera);
+			{
+				std::lock_guard<std::mutex> lock(renderQueue.mtx);
+				renderQueue.backFrame = std::move(newFrame);
+				renderQueue.swap();
+				renderQueue.updated = true;
+			}
+		}
+	});
+
+	while (render.isOpen() && running) {
+		std::shared_ptr<RenderFrame> front = nullptr;
+
+		{
+			std::lock_guard<std::mutex> lock(renderQueue.mtx);
+			if (renderQueue.updated == true) {
+				front = renderQueue.frontFrame;
+				renderQueue.updated = false;
+			}
+		}
+
+		if (front) {
+			render.clear();
+			render.drawFrame(*front);
+			render.present();
+		}
+	}
+
+	if (render.isOpen())
+		render.closeWindow();
+
+	updateThread.join();
 }
 
 } // namespace engine

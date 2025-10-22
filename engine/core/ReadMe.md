@@ -2,17 +2,17 @@
 
 Один кадр:
 Engine::run()
- ├─ Input.pollEvents(Renderer) (Считывает клавиши и события SFML)
+ ├─ Input.pollEvents(Render) (Считывает клавиши и события SFML)
  │
  ├─ activeLoop.update(dt)
  │       └─ World.update(dt)
  │           └─ Entity.update(dt)
  │
- ├─ renderer.clear()
- ├─ activeLoop->draw(renderer, camera)
- │       └─ World.draw(renderer, camera)
- │           └─ Entity.render(renderer, camera)
- │               └─ renderer.draw(sprite)
+ ├─ render.clear()
+ ├─ activeLoop->draw(render, camera)
+ │       └─ World.draw(render, camera)
+ │           └─ Entity.render(render, camera)
+ │               └─ render.draw(sprite)
  │
- ├─ renderer.present()
+ ├─ render.present()
  └─ if (loop->isFinished()) -> exit()
