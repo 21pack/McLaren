@@ -12,20 +12,28 @@ FetchContent_Declare(SFML
     SYSTEM)
 FetchContent_MakeAvailable(SFML)
 
+FetchContent_Declare(EnTT
+    GIT_REPOSITORY https://github.com/skypjack/entt.git
+    GIT_TAG v3.13.0 
+    GIT_SHALLOW ON
+    EXCLUDE_FROM_ALL
+    SYSTEM
+)
+FetchContent_MakeAvailable(EnTT)
+
 add_executable(main 
     game/main.cpp
-    game/game_world.cpp
     game/loops/game_loop.cpp
-    game/entities/player.cpp
     engine/engine.cpp
     engine/render.cpp
     engine/camera.cpp
     engine/input.cpp
     engine/entity.cpp
     engine/texture.cpp
+    engine/systems.cpp
 )
 
 target_include_directories(main PRIVATE ${SFML_INCLUDE_DIR})
 
 target_compile_features(main PRIVATE cxx_std_17)
-target_link_libraries(main PRIVATE SFML::Graphics)
+target_link_libraries(main PRIVATE SFML::Graphics EnTT::EnTT)

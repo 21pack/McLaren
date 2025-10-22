@@ -1,12 +1,12 @@
 #include "../engine/engine.h"
-#include "game_world.h"
 #include "loops/game_loop.h"
 #include <memory>
 
 int main() {
 	engine::Engine engine;
 
-	engine.setLoop(std::make_unique<game::GameLoop>());
+	auto loop = std::make_unique<GameLoop>();
+	engine.setLoop(std::move(loop));
 
 	engine.run();
 

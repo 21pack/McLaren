@@ -11,7 +11,7 @@ sf::Vector2f Camera::worldToScreen(sf::Vector2f worldPos) const {
 	float screenX = (worldPos.x - worldPos.y) * TILE_WIDTH_HALF;
 	float screenY = (worldPos.x + worldPos.y) * TILE_HEIGHT_HALF;
 
-	return {(screenX * zoom) + position.x, (screenY * zoom) + position.y};
+	return {(screenX * zoom), (screenY * zoom)};
 }
 
 sf::Vector2f Camera::screenToWorld(const sf::Vector2f &screenPos) const {
@@ -19,8 +19,8 @@ sf::Vector2f Camera::screenToWorld(const sf::Vector2f &screenPos) const {
 		return {0.f, 0.f};
 	}
 
-	float screenX = (screenPos.x - position.x) / zoom;
-	float screenY = (screenPos.y - position.y) / zoom;
+	float screenX = (screenPos.x) / zoom;
+	float screenY = (screenPos.y) / zoom;
 
 	float worldX = (screenX / TILE_WIDTH_HALF + screenY / TILE_HEIGHT_HALF) / 2.0f;
 	float worldY = (screenY / TILE_HEIGHT_HALF - screenX / TILE_WIDTH_HALF) / 2.0f;
