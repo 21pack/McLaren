@@ -10,7 +10,7 @@ struct Render;
 struct Input {
 	std::map<sf::Keyboard::Key, bool> keys;
 
-	void
+	bool
 	pollEvents(Render &render); // Handles all window events (keyboard, mouse, close)
 
 	bool

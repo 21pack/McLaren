@@ -3,10 +3,10 @@
 
 namespace engine {
 
-void Input::pollEvents(Render &render) {
+bool Input::pollEvents(Render &render) {
 	while (auto event = render.getWindow().pollEvent()) {
 		if (event->is<sf::Event::Closed>()) {
-			render.closeWindow();
+			return true;
 		} else if (auto *keyPressed = event->getIf<sf::Event::KeyPressed>()) {
 			if (keyPressed->code != sf::Keyboard::Key::Unknown) {
 				keys[keyPressed->code] = true;
@@ -17,6 +17,7 @@ void Input::pollEvents(Render &render) {
 			}
 		}
 	}
+	return false;
 }
 
 bool Input::isKeyDown(sf::Keyboard::Key key) const {

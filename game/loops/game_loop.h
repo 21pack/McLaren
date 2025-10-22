@@ -2,32 +2,30 @@
 #include "../../engine/camera.h"
 #include "../../engine/loop.h"
 #include "../../engine/render_frame.h"
-#include "../entities/player.h"
-#include "../game_world.h"
+#include "../../engine/tile.h"
+#include <entt/entt.hpp>
+#include <vector>
 
 namespace engine {
 struct Engine;
-struct Texture;
-} // namespace engine
+}
 
-namespace game {
-
-struct GameLoop : public engine::ILoop {
+class GameLoop : public engine::ILoop {
+  public:
 	GameLoop();
+	virtual ~GameLoop() = default;
 
 	void init(engine::Engine &engine) override;
-
 	void update(engine::Input &input, float dt) override;
 	void collectRenderData(engine::RenderFrame &frame,
 						   engine::Camera &camera) override;
-
-	bool isFinished() const override { return m_finished; }
-	void exit() override { m_finished = true; }
+	bool isFinished() const override;
 
   private:
-	GameWorld world;
-	Player *player;
-	engine::Texture *m_tex = nullptr;
-};
+	entt::registry m_registry;
+	engine::Engine *m_engine = nullptr;
 
-} // namespace game
+	int width;
+	int height;
+	std::vector<engine::Tile> tiles;
+};

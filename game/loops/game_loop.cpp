@@ -1,58 +1,97 @@
 #include "game_loop.h"
+#include "../../engine/components.h"
 #include "../../engine/engine.h"
 #include "../../engine/render.h"
+#include "../../engine/systems.h"
 #include "../../engine/texture.h"
+#include "../../engine/tile.h"
+#include <memory>
 
-namespace game {
-
-GameLoop::GameLoop() : world(20, 20), player(nullptr) {}
+GameLoop::GameLoop() : width(20), height(20) { tiles.resize(width * height); }
 
 void GameLoop::init(engine::Engine &engine) {
-	m_tex = &engine.texture;
+	m_engine = &engine;
 
-	auto playerPtr = std::make_unique<Player>();
+	sf::Vector2f worldCenter = {width / 2.0f, height / 2.0f};
 
-	sf::Texture &playerTexture = m_tex->getTexture("game/assets/player.png");
-	playerPtr->setTexture(playerTexture);
+	sf::Vector2f screenCenter = m_engine->camera.worldToScreen(worldCenter);
 
-	const float playerHeight = 128.0f;
-	float originalHeight = static_cast<float>(playerTexture.getSize().y);
-	float scaleFactor = playerHeight / originalHeight;
-	playerPtr->m_sprite->setScale({scaleFactor, scaleFactor});
-	playerPtr->m_sprite->setOrigin(
-		{static_cast<float>(playerTexture.getSize().x) / 2.f,
-		 static_cast<float>(playerTexture.getSize().y)});
+	m_engine->camera.position = screenCenter;
 
-	player = playerPtr.get();
-	player->position = {10.f, 10.f};
+	sf::Vector2f targetPudgeSize{128.f, 128.f};
 
-	world.addEntity(std::move(playerPtr));
+	auto player = m_registry.create();
+	m_registry.emplace<engine::PlayerControlled>(player);
+	m_registry.emplace<engine::Position>(player, sf::Vector2f{10.f, 10.f});
+	m_registry.emplace<engine::Velocity>(player);
+	m_registry.emplace<engine::Renderable>(player, "game/assets/player.png",
+										   sf::IntRect({0, 0}, {600, 504}),
+										   targetPudgeSize);
+
+	for (int i = 0; i < 5; i++) {
+		auto npc = m_registry.create();
+		m_registry.emplace<engine::Position>(npc, sf::Vector2f{i * 4.f, i * 4.f});
+		m_registry.emplace<engine::Rotation>(npc, 0.f);
+		m_registry.emplace<engine::Renderable>(npc, "game/assets/player.png",
+											   sf::IntRect({0, 0}, {600, 504}),
+											   targetPudgeSize);
+	}
 }
 
 void GameLoop::update(engine::Input &input, float dt) {
-	if (input.isKeyDown(sf::Keyboard::Key::Escape)) {
-		exit();
+	systems::playerInputSystem(m_registry, input);
+	systems::movementSystem(m_registry, dt);
+	systems::animationSystem(m_registry, dt);
+
+	// camera follow
+	auto playerView =
+		m_registry.view<const engine::Position, const engine::PlayerControlled>();
+	for (auto entity : playerView) {
+		const auto &pos = playerView.get<const engine::Position>(entity);
+		m_engine->camera.position = m_engine->camera.worldToScreen(pos.value);
 	}
-
-	player->handleInput(input);
-
-	world.update(dt);
 }
 
 void GameLoop::collectRenderData(engine::RenderFrame &frame,
 								 engine::Camera &camera) {
-	sf::Vector2f windowSize = sf::Vector2f(frame.cameraView.getSize());
-	sf::Vector2i worldSize = world.getSize();
-	sf::Vector2f worldCenter = {worldSize.x / 2.f, worldSize.y / 2.f};
 
-	engine::Camera tempCamera;
-	tempCamera.zoom = camera.zoom;
-	sf::Vector2f projectedWorldCenter = tempCamera.worldToScreen(worldCenter);
+	sf::Color tileFillColor = sf::Color(20, 190, 20);
+	sf::Color tileOutlineColor = sf::Color(80, 50, 80);
 
-	camera.position.x = windowSize.x / 2.f - projectedWorldCenter.x;
-	camera.position.y = windowSize.y / 2.f - projectedWorldCenter.y;
+	frame.tileVertices.clear();
+	frame.tileOutlines.clear();
 
-	world.collectRenderData(frame, camera);
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			sf::Vector2f p0 = {(float)x, (float)y};
+			sf::Vector2f p1 = {(float)x + 1, (float)y};
+			sf::Vector2f p2 = {(float)x + 1, (float)y + 1};
+			sf::Vector2f p3 = {(float)x, (float)y + 1};
+
+			sf::Vector2f s0 = camera.worldToScreen(p0);
+			sf::Vector2f s1 = camera.worldToScreen(p1);
+			sf::Vector2f s2 = camera.worldToScreen(p2);
+			sf::Vector2f s3 = camera.worldToScreen(p3);
+
+			frame.tileVertices.push_back({s0, tileFillColor});
+			frame.tileVertices.push_back({s1, tileFillColor});
+			frame.tileVertices.push_back({s3, tileFillColor});
+			frame.tileVertices.push_back({s1, tileFillColor});
+			frame.tileVertices.push_back({s2, tileFillColor});
+			frame.tileVertices.push_back({s3, tileFillColor});
+
+			frame.tileOutlines.push_back({s0, tileOutlineColor});
+			frame.tileOutlines.push_back({s1, tileOutlineColor});
+			frame.tileOutlines.push_back({s1, tileOutlineColor});
+			frame.tileOutlines.push_back({s2, tileOutlineColor});
+			frame.tileOutlines.push_back({s2, tileOutlineColor});
+			frame.tileOutlines.push_back({s3, tileOutlineColor});
+			frame.tileOutlines.push_back({s3, tileOutlineColor});
+			frame.tileOutlines.push_back({s0, tileOutlineColor});
+		}
+	}
+
+	systems::renderSystem(m_registry, frame, camera, m_engine->texture);
 }
 
-} // namespace game
+bool GameLoop::isFinished() const { return m_finished; }

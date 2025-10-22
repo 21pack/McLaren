@@ -1,6 +1,7 @@
 #include "engine.h"
 #include <SFML/System/Clock.hpp>
 #include <SFML/Window/Event.hpp>
+#include <iostream>
 #include <thread>
 
 namespace engine {
@@ -19,12 +20,13 @@ void Engine::run() {
 	std::thread updateThread([this, &running]() {
 		sf::Clock clock;
 
-		while (render.isOpen()) {
+		while (running) {
 			float dt = clock.restart().asSeconds();
-			input.pollEvents(render);
 
-			if (!activeLoop)
+			if (!activeLoop) {
+				running = false;
 				break;
+			}
 
 			activeLoop->update(input, dt);
 
@@ -41,12 +43,18 @@ void Engine::run() {
 				renderQueue.swap();
 				renderQueue.updated = true;
 			}
+
+			sf::sleep(sf::milliseconds(5));
 		}
 	});
 
 	while (render.isOpen() && running) {
-		std::shared_ptr<RenderFrame> front = nullptr;
+		if (input.pollEvents(render)) {
+			running = false;
+			break;
+		}
 
+		std::shared_ptr<RenderFrame> front = nullptr;
 		{
 			std::lock_guard<std::mutex> lock(renderQueue.mtx);
 			if (renderQueue.updated == true) {
@@ -59,11 +67,14 @@ void Engine::run() {
 			render.clear();
 			render.drawFrame(*front);
 			render.present();
+		} else {
+			sf::sleep(sf::milliseconds(1));
 		}
 	}
 
-	if (render.isOpen())
+	if (render.isOpen()) {
 		render.closeWindow();
+	}
 
 	updateThread.join();
 }
