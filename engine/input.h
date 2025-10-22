@@ -5,13 +5,13 @@
 
 namespace engine {
 
-struct Renderer;
+struct Render;
 
 struct Input {
 	std::map<sf::Keyboard::Key, bool> keys;
 
-	void pollEvents(
-		Renderer &renderer); // Handles all window events (keyboard, mouse, close)
+	void
+	pollEvents(Render &render); // Handles all window events (keyboard, mouse, close)
 
 	bool
 	isKeyDown(sf::Keyboard::Key key) const; // Сheck if a key is currently pressed

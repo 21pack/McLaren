@@ -1,15 +1,19 @@
 #pragma once
-#include <cstdint> 
-#include <SFML/System/Vector2.hpp> 
+#include "camera.h"
+#include "entity.h"
+#include "render_frame.h"
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/Graphics/Texture.hpp>
+#include <SFML/System/Vector2.hpp>
+#include <cstdint>
 
 namespace engine {
 
 struct World;
-struct Renderer;
+struct Render;
 struct Camera;
+struct RenderFrame;
 
 struct EntityId {
 	uint32_t index;
@@ -29,21 +33,9 @@ struct Entity {
 	std::unique_ptr<sf::Sprite> m_sprite;
 
 	virtual void update(float dt); // Object logic (movement, animation)
-	virtual void
-	render(Renderer &,
-		   const Camera &) = 0; // Rendering (must take camera into account)
-
-	virtual void setTexture(sf::Texture& texture, const sf::IntRect& rect = sf::IntRect()) {
-        if (!m_sprite) {
-            m_sprite = std::make_unique<sf::Sprite>(texture);
-        } else {
-            m_sprite->setTexture(texture);
-        }
-
-        if (rect.size.x != 0 && rect.size.y != 0) {
-            m_sprite->setTextureRect(rect);
-        }
-    }
+	virtual void collectRenderData(RenderFrame &frame, const Camera &camera) const;
+	virtual void setTexture(sf::Texture &texture,
+							const sf::IntRect &rect = sf::IntRect());
 };
 
 } // namespace engine
