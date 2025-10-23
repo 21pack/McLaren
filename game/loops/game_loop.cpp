@@ -42,8 +42,6 @@ void GameLoop::init(engine::Engine &engine) {
 }
 
 void GameLoop::buildStaticWorld() {
-	auto &textureManager = m_engine->texture;
-
 	const int tileWidth = 64;
 	const int tileHeight = 32;
 	const int tilesPerRow = 16;
@@ -110,9 +108,13 @@ void GameLoop::buildStaticWorld() {
 	int texWidth = (width + height) * (tileWidth / 2);
 	int texHeight = (width + height) * (tileHeight / 2);
 
+	m_engine->camera.setTileSize((float)tileWidth, (float)tileHeight);
+
 	m_staticMapTexture = std::make_unique<sf::RenderTexture>(
 		sf::RenderTexture(sf::Vector2u(texWidth, texHeight)));
 	m_staticMapTexture->clear(sf::Color::Transparent);
+
+	auto &textureManager = m_engine->texture;
 
 	sf::Sprite tileSprite(
 		textureManager.getTexture("game/assets/grassland_tiles.png"));

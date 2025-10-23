@@ -12,6 +12,15 @@ struct Camera {
 
 	sf::Vector2f
 	screenToWorld(const sf::Vector2f &screenPos) const; // Inverse transformation
+
+	void setTileSize(float w, float h) {
+		tileWidth = w;
+		tileHeight = h;
+	}
+
+  private:
+	float tileWidth = 64.f;
+	float tileHeight = 32.f;
 };
 
 } // namespace engine
