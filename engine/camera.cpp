@@ -4,12 +4,12 @@
 
 namespace engine {
 
-const float TILE_WIDTH_HALF = 32.f;
-const float TILE_HEIGHT_HALF = 16.f;
-
 sf::Vector2f Camera::worldToScreen(sf::Vector2f worldPos) const {
-	float screenX = (worldPos.x - worldPos.y) * TILE_WIDTH_HALF;
-	float screenY = (worldPos.x + worldPos.y) * TILE_HEIGHT_HALF;
+	const float tileWidthHalf = tileWidth * 0.5f;
+	const float tileHeightHalf = tileHeight * 0.5f;
+
+	float screenX = (worldPos.x - worldPos.y) * tileWidthHalf;
+	float screenY = (worldPos.x + worldPos.y) * tileHeightHalf;
 
 	return {(screenX * zoom), (screenY * zoom)};
 }
@@ -19,11 +19,14 @@ sf::Vector2f Camera::screenToWorld(const sf::Vector2f &screenPos) const {
 		return {0.f, 0.f};
 	}
 
+	const float tileWidthHalf = tileWidth * 0.5f;
+	const float tileHeightHalf = tileHeight * 0.5f;
+
 	float screenX = (screenPos.x) / zoom;
 	float screenY = (screenPos.y) / zoom;
 
-	float worldX = (screenX / TILE_WIDTH_HALF + screenY / TILE_HEIGHT_HALF) / 2.0f;
-	float worldY = (screenY / TILE_HEIGHT_HALF - screenX / TILE_WIDTH_HALF) / 2.0f;
+	float worldX = (screenX / tileWidth + screenY / tileHeightHalf) / 2.0f;
+	float worldY = (screenY / tileHeightHalf - screenX / tileWidth) / 2.0f;
 
 	return {worldX, worldY};
 }
