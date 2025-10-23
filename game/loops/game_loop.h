@@ -3,6 +3,7 @@
 #include "../../engine/loop.h"
 #include "../../engine/render_frame.h"
 #include "../../engine/tile.h"
+#include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 #include <vector>
 
@@ -25,7 +26,12 @@ class GameLoop : public engine::ILoop {
 	entt::registry m_registry;
 	engine::Engine *m_engine = nullptr;
 
+	void buildStaticWorld();
+
 	int width;
 	int height;
+
+	std::unique_ptr<sf::RenderTexture> m_staticMapTexture;
+	std::unique_ptr<sf::Sprite> m_staticMapSprite;
 	std::vector<engine::Tile> tiles;
 };
