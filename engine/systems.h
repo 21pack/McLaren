@@ -1,4 +1,6 @@
 #pragma once
+#include "components.h"
+#include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 
 namespace engine {
@@ -18,5 +20,15 @@ void animationSystem(entt::registry &registry, float dt);
 
 void renderSystem(entt::registry &registry, engine::RenderFrame &frame,
 				  const engine::Camera &camera, engine::ImageManager &imageManager);
+
+void npcFollowPlayerSystem(entt::registry &registry, float dt);
+
+void npcWanderSystem(entt::registry &registry, float dt);
+
+entt::entity createNPC(
+	entt::registry &registry, const sf::Vector2f &pos,
+	const sf::Vector2f &targetSize,
+	const std::unordered_map<engine::AnimationState, engine::AnimationClip> &clips,
+	float speed);
 
 } // namespace systems

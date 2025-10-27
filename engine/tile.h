@@ -7,4 +7,9 @@ struct Tile {
 	bool solid = false;
 };
 
+struct TileData {
+	sf::Image *image;
+	int height;
+};
+
 } // namespace engine

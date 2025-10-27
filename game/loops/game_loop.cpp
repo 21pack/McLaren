@@ -18,42 +18,9 @@ void GameLoop::init(engine::Engine &engine) {
 	m_engine->camera.position = screenCenter;
 
 	// Generate tiles once
-	buildStaticWorld();
-
-	// Creating entities (player, NPC, etc.)
-
-	sf::Vector2f targetPudgeSize{64.f, 64.f};
-
-	auto player = m_registry.create();
-	m_registry.emplace<engine::PlayerControlled>(player);
-	m_registry.emplace<engine::Position>(player, sf::Vector2f{0.f, 0.f});
-	m_registry.emplace<engine::Velocity>(player);
-	m_registry.emplace<engine::Renderable>(
-		player, "game/assets/critters/wolf/wolf-idle.png",
-		sf::IntRect({0, 0}, {64, 64}), targetPudgeSize);
-
-	for (int i = 0; i < 5; i++) {
-		auto npc = m_registry.create();
-		m_registry.emplace<engine::Position>(npc, sf::Vector2f{i * 4.f, i * 4.f});
-		m_registry.emplace<engine::Rotation>(npc, 0.f);
-		m_registry.emplace<engine::Renderable>(
-			npc, "game/assets/critters/wolf/wolf-bite.png",
-			sf::IntRect({0, 0}, {64, 64}), targetPudgeSize);
-	}
-}
-
-void GameLoop::buildStaticWorld() {
-	const int tileWidth = 32;
-	const int tileHeight = 32;
-
 	auto &imageManager = m_engine->imageManager;
 
-	struct TileData {
-		sf::Image *image;
-		int height;
-	};
-
-	std::unordered_map<int, TileData> tileImages = {
+	std::unordered_map<int, engine::TileData> tileImages = {
 		{0,
 		 {&imageManager.getImage("game/assets/tileset/tile_022.png"), 0}}, // grass
 		{1, {&imageManager.getImage("game/assets/tileset/tile_000.png"), 0}}, // sand
@@ -62,6 +29,44 @@ void GameLoop::buildStaticWorld() {
 		{3,
 		 {&imageManager.getImage("game/assets/tileset/tile_064.png"), 2}}, // rocks
 	};
+
+	const int tileWidth = 32.f;
+	const int tileHeight = 32.f;
+	m_engine->camera.setTileSize(tileWidth, tileHeight / 2);
+
+	generateTileMap(tileImages);
+	m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
+											 tiles, width, height, tileImages);
+
+	// Creating entities (player, NPC, etc.)
+
+	sf::Vector2f targetWolfSize{64.f, 64.f};
+	sf::IntRect frameRect({0, 0}, {64, 64});
+
+	// Wolf
+	std::unordered_map<engine::AnimationState, engine::AnimationClip> wolfClips = {
+		{engine::AnimationState::Idle,
+		 {"game/assets/critters/wolf/wolf-idle.png", 4, 0.15f, frameRect}},
+		{engine::AnimationState::Run,
+		 {"game/assets/critters/wolf/wolf-run.png", 8, 0.08f, frameRect}},
+	};
+
+	auto wolf =
+		systems::createNPC(m_registry, {0.f, 0.f}, targetWolfSize, wolfClips, 5.f);
+	m_registry.emplace<engine::PlayerControlled>(wolf);
+
+	auto wolf1 =
+		systems::createNPC(m_registry, {8.f, 8.f}, targetWolfSize, wolfClips, 2.5f);
+	m_registry.emplace<engine::ChasingPlayer>(wolf1);
+
+	for (int i = 0; i < 2; i++) {
+		auto wolf = systems::createNPC(m_registry, {i + 10.f, i + 10.f},
+									   targetWolfSize, wolfClips, 1.f);
+	}
+}
+
+void GameLoop::generateTileMap(
+	std::unordered_map<int, engine::TileData> &tileImages) {
 
 	auto getIndex = [&](int x, int y) { return y * width + x; };
 
@@ -134,59 +139,12 @@ void GameLoop::buildStaticWorld() {
 			}
 		}
 	}
-
-	m_engine->camera.setTileSize((float)tileWidth, (float)tileHeight / 2);
-	m_staticMapPoints.setPrimitiveType(sf::PrimitiveType::Points);
-	const int step = 1; // If want to make draw faster, you can increase it
-
-	m_staticMapPoints.clear();
-
-	float zoom = m_engine->camera.zoom;
-	int pointSize = static_cast<int>(std::ceil(zoom));
-
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			const auto &tile = tiles[getIndex(x, y)];
-			sf::Vector2f isoVec =
-				m_engine->camera.worldToScreen({(float)x, (float)y});
-
-			for (int layerId : tile.layerIds) {
-				if (tileImages.find(layerId) == tileImages.end()) {
-					continue;
-				}
-
-				const TileData &tileData = tileImages[layerId];
-				sf::Image &tileImage = *tileData.image;
-				int layerHeight = tileData.height;
-
-				for (int ty = 0; ty < tileHeight; ty += step) {
-					for (int tx = 0; tx < tileWidth; tx += step) {
-						if (tx < 0 || ty < 0 || tx >= tileWidth || ty >= tileHeight)
-							continue;
-
-						sf::Color color =
-							tileImage.getPixel({(unsigned int)tx, (unsigned int)ty});
-						if (color.a == 0)
-							continue;
-
-						float pixelX = isoVec.x + tx * zoom;
-						float pixelY = isoVec.y + ty * zoom - layerHeight;
-
-						for (int dy = 0; dy < pointSize; ++dy) {
-							for (int dx = 0; dx < pointSize; ++dx) {
-								m_staticMapPoints.append(
-									{{pixelX + dx, pixelY + dy}, color});
-							}
-						}
-					}
-				}
-			}
-		}
-	}
 }
 
 void GameLoop::update(engine::Input &input, float dt) {
 	systems::playerInputSystem(m_registry, input);
+	systems::npcFollowPlayerSystem(m_registry, dt);
+	systems::npcWanderSystem(m_registry, dt);
 	systems::movementSystem(m_registry, dt);
 	systems::animationSystem(m_registry, dt);
 

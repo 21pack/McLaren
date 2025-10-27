@@ -26,7 +26,7 @@ class GameLoop : public engine::ILoop {
 	entt::registry m_registry;
 	engine::Engine *m_engine = nullptr;
 
-	void buildStaticWorld();
+	void generateTileMap(std::unordered_map<int, engine::TileData> &tileImages);
 
 	int width;
 	int height;
