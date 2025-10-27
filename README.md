@@ -44,11 +44,20 @@ The template starts out very basic, but might receive additional features over t
    Be sure to run these commands in the root directory of the project you just created.
 
    ```
-   cmake -B build
+   cmake -B build -DBUILD_TESTING=ON
    cmake --build build
    ```
+9. Run
+   Demo game
+   ```
+   ./build/bin/main
+   ```
+   Tests
+   ```
+   ./build/bin/run_tests
+   ```
 
-9. Enjoy!
+10. Enjoy!
 
 ### Visual Studio
 
