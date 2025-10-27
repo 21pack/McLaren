@@ -48,6 +48,9 @@ void Engine::run() {
 		}
 	});
 
+	int frameCount = 0;
+	fpsClock.restart();
+
 	while (render.isOpen() && running) {
 		if (input.pollEvents(render)) {
 			running = false;
@@ -66,6 +69,16 @@ void Engine::run() {
 		if (front) {
 			render.clear();
 			render.drawFrame(*front);
+
+			frameCount++;
+			float elapsed = fpsClock.getElapsedTime().asSeconds();
+			if (elapsed >= 1.f) {
+				float fps = static_cast<float>(frameCount) / elapsed;
+				std::cout << "FPS: " << static_cast<int>(fps) << "\n";
+				frameCount = 0;
+				fpsClock.restart();
+			}
+
 			render.present();
 		} else {
 			sf::sleep(sf::milliseconds(1));

@@ -2,10 +2,10 @@
 
 #include "camera.h"
 #include "engine.h"
+#include "image_manager.h"
 #include "input.h"
 #include "loop.h"
 #include "render.h"
-#include "texture.h"
 
 namespace engine {
 
@@ -15,12 +15,14 @@ struct Engine {
 	Camera camera;
 	RenderQueue renderQueue;
 	LoopPtr activeLoop; // current game scene (game, menu, etc.)
-	Texture texture;
+	ImageManager imageManager;
 
 	void setLoop(LoopPtr loop); // switching the active scene
 	void run();					// main loop
 
   private:
+	sf::Clock fpsClock;
+
 	void renderLoop();
 	void drawLoop();
 };

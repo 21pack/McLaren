@@ -1,9 +1,9 @@
 #include "systems.h"
 #include "camera.h"
 #include "components.h"
+#include "image_manager.h"
 #include "input.h"
 #include "render_frame.h"
-#include "texture.h"
 #include <cmath>
 
 namespace systems {
@@ -67,7 +67,7 @@ void animationSystem(entt::registry &registry, float dt) {
 }
 
 void renderSystem(entt::registry &registry, engine::RenderFrame &frame,
-				  const engine::Camera &camera, engine::Texture &textureManager) {
+				  const engine::Camera &camera, engine::ImageManager &imageManager) {
 
 	auto view = registry.view<const Position, const Renderable>();
 
@@ -80,7 +80,7 @@ void renderSystem(entt::registry &registry, engine::RenderFrame &frame,
 		const auto *rot = registry.try_get<const Rotation>(entity);
 
 		RenderFrame::SpriteData spriteData;
-		spriteData.texture = &textureManager.getTexture(render.textureName);
+		spriteData.image = &imageManager.getImage(render.textureName);
 
 		// apply animation
 		sf::IntRect currentRect = render.textureRect;

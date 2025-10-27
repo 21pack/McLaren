@@ -3,8 +3,8 @@
 namespace engine {
 
 struct Tile {
-	int id = 0;
-	bool solid = true;
+	std::vector<int> layerIds;
+	bool solid = false;
 };
 
 } // namespace engine

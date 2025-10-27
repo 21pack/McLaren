@@ -10,7 +10,7 @@ namespace engine {
 struct Render {
 	sf::RenderWindow window;
 
-	Render(unsigned width = 1920u, unsigned height = 1080u,
+	Render(unsigned width = 1000u, unsigned height = 600u,
 		   const char *title = "Game")
 		: window(sf::VideoMode({width, height}), title) {}
 
@@ -23,6 +23,10 @@ struct Render {
 
 	sf::RenderWindow &getWindow() { return window; }
 	void closeWindow() { window.close(); }
+
+  private:
+	void drawSprite(sf::RenderWindow &window, const RenderFrame::SpriteData &sprite,
+					int step);
 };
 
 struct RenderQueue {
