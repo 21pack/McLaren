@@ -2,6 +2,7 @@
 #include "camera.h"
 #include "loop.h"
 #include "render_frame.h"
+#include "tile.h"
 #include <SFML/Graphics.hpp>
 #include <mutex>
 
@@ -20,6 +21,11 @@ struct Render {
 
 	std::shared_ptr<RenderFrame> collectFrame(ILoop &loop, Camera &camera);
 	void drawFrame(const RenderFrame &frame);
+	void
+	generateTileMapVertices(sf::VertexArray &vertices, Camera &camera,
+							const std::vector<Tile> &tiles, int worldWidth,
+							int worldHeight,
+							std::unordered_map<int, engine::TileData> &tileImages);
 
 	sf::RenderWindow &getWindow() { return window; }
 	void closeWindow() { window.close(); }

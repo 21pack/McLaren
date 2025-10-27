@@ -82,6 +82,65 @@ void Render::drawSprite(sf::RenderWindow &window,
 					sf::PrimitiveType::Points);
 }
 
+void Render::generateTileMapVertices(
+	sf::VertexArray &vertices, Camera &camera, const std::vector<Tile> &tiles,
+	int worldWidth, int worldHeight,
+	std::unordered_map<int, engine::TileData> &tileImages) {
+
+	sf::Vector2f tileSize = camera.getTileSize();
+	float tileWidth = tileSize.x;
+	float tileHeight = tileSize.y * 2.f;
+
+	camera.setTileSize(tileWidth, tileHeight / 2);
+	vertices.setPrimitiveType(sf::PrimitiveType::Points);
+	const int step = 1; // If want to make draw faster, you can increase it
+
+	vertices.clear();
+
+	auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
+
+	float zoom = camera.zoom;
+	int pointSize = static_cast<int>(std::ceil(zoom));
+
+	for (int y = 0; y < worldHeight; ++y) {
+		for (int x = 0; x < worldWidth; ++x) {
+			const auto &tile = tiles[getIndex(x, y)];
+			sf::Vector2f isoVec = camera.worldToScreen({(float)x, (float)y});
+
+			for (int layerId : tile.layerIds) {
+				if (tileImages.find(layerId) == tileImages.end()) {
+					continue;
+				}
+
+				const TileData &tileData = tileImages[layerId];
+				sf::Image &tileImage = *tileData.image;
+				int layerHeight = tileData.height;
+
+				for (int ty = 0; ty < tileHeight; ty += step) {
+					for (int tx = 0; tx < tileWidth; tx += step) {
+						if (tx < 0 || ty < 0 || tx >= tileWidth || ty >= tileHeight)
+							continue;
+
+						sf::Color color =
+							tileImage.getPixel({(unsigned int)tx, (unsigned int)ty});
+						if (color.a == 0)
+							continue;
+
+						float pixelX = isoVec.x + tx * zoom;
+						float pixelY = isoVec.y + ty * zoom - layerHeight;
+
+						for (int dy = 0; dy < pointSize; ++dy) {
+							for (int dx = 0; dx < pointSize; ++dx) {
+								vertices.append({{pixelX + dx, pixelY + dy}, color});
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void Render::drawFrame(const RenderFrame &frame) {
 	window.clear(frame.clearColor);
 	window.setView(frame.cameraView);

@@ -18,6 +18,8 @@ struct Camera {
 		tileHeight = h;
 	}
 
+	sf::Vector2f getTileSize() { return {tileWidth, tileHeight}; }
+
   private:
 	float tileWidth = 32.f;
 	float tileHeight = 32.f;
