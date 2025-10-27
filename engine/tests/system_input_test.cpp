@@ -13,6 +13,7 @@ TEST(SystemsTest, PlayerInputSystem) {
 	auto entity = registry.create();
 	registry.emplace<engine::Velocity>(entity, sf::Vector2f{0.f, 0.f});
 	registry.emplace<engine::PlayerControlled>(entity);
+	registry.emplace<engine::Animation>(entity);
 
 	input.keys[sf::Keyboard::Key::W] = true;
 	input.keys[sf::Keyboard::Key::D] = true;
