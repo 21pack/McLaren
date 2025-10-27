@@ -24,7 +24,7 @@ FetchContent_Declare(EnTT
 )
 FetchContent_MakeAvailable(EnTT)
 
-add_library(engine STATIC 
+add_library(engine 
     engine/engine.cpp
     engine/render.cpp
     engine/camera.cpp
