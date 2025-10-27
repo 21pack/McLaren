@@ -12,7 +12,7 @@ struct RenderFrame {
 	sf::Color clearColor = sf::Color::Black;
 
 	struct SpriteData {
-		const sf::Texture *texture = nullptr; // pointer to the texture
+		const sf::Image *image = nullptr;	  // pointer to the image
 		sf::IntRect textureRect;			  // texture area
 		sf::Vector2f position;				  // position in world coordinates
 		sf::Angle rotation = sf::Angle::Zero; // turn
@@ -21,9 +21,7 @@ struct RenderFrame {
 	};
 
 	std::vector<SpriteData> sprites;
-
-	std::vector<sf::Vertex> tileVertices;
-	std::vector<sf::Vertex> tileOutlines;
+	sf::VertexArray tileVertices;
 };
 
 } // namespace engine

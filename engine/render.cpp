@@ -1,4 +1,6 @@
 #include "render.h"
+#include <cmath>
+#include <iostream>
 
 namespace engine {
 
@@ -6,9 +8,8 @@ std::shared_ptr<RenderFrame> Render::collectFrame(ILoop &loop, Camera &camera) {
 	auto frame = std::make_shared<RenderFrame>();
 
 	frame->clearColor = sf::Color::Black;
-	frame->cameraView = sf::View(
-		sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(window.getSize().x / 2.f,
-													   window.getSize().y / 2.f)));
+	frame->cameraView =
+		sf::View(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(1000.f, 600.f)));
 	frame->cameraView.setCenter(camera.position);
 
 	loop.collectRenderData(*frame, camera);
@@ -16,20 +17,74 @@ std::shared_ptr<RenderFrame> Render::collectFrame(ILoop &loop, Camera &camera) {
 	return frame;
 }
 
+void Render::drawSprite(sf::RenderWindow &window,
+						const RenderFrame::SpriteData &sprite, int step) {
+	const auto &rect = sprite.textureRect;
+	int texW = rect.size.x;
+	int texH = rect.size.y;
+
+	// Pre-calculation of transformation
+	const float angle = sprite.rotation.asRadians();
+	const float cosA = std::cos(angle);
+	const float sinA = std::sin(angle);
+
+	const sf::Image &img = *sprite.image;
+
+	std::vector<sf::Vertex> vertices;
+	vertices.reserve((texW / step) * (texH / step));
+
+	for (int ty = 0; ty < texH; ty += step) {
+		for (int tx = 0; tx < texW; tx += step) {
+			// Local pixel coordinates
+			float localX = static_cast<float>(tx) * sprite.scale.x;
+			float localY = static_cast<float>(ty) * sprite.scale.y;
+
+			// Rotate
+			float rotatedX = localX * cosA - localY * sinA;
+			float rotatedY = localX * sinA + localY * cosA;
+
+			// Position in world coordinates
+			float worldX = sprite.position.x + rotatedX;
+			float worldY = sprite.position.y + rotatedY;
+
+			// Texture sampling
+			int u = rect.position.x + tx;
+			int v = rect.position.y + ty;
+
+			if (u < 0 || v < 0 || u >= static_cast<int>(img.getSize().x) ||
+				v >= static_cast<int>(img.getSize().y))
+				continue;
+
+			sf::Color texColor = img.getPixel({(unsigned int)u, (unsigned int)v});
+
+			// Animation with sprite color
+			sf::Color finalColor(texColor.r * sprite.color.r / 255,
+								 texColor.g * sprite.color.g / 255,
+								 texColor.b * sprite.color.b / 255,
+								 texColor.a * sprite.color.a / 255);
+
+			sf::Vertex vertex;
+			vertex.position = sf::Vector2f(worldX, worldY);
+			vertex.color = texColor;
+			vertices.push_back(vertex);
+		}
+	}
+
+	if (!vertices.empty())
+		window.draw(vertices.data(), static_cast<size_t>(vertices.size()),
+					sf::PrimitiveType::Points);
+}
+
 void Render::drawFrame(const RenderFrame &frame) {
 	window.clear(frame.clearColor);
 	window.setView(frame.cameraView);
 
-	// Draw sprites
-	for (auto &s : frame.sprites) {
-		sf::Sprite sprite = sf::Sprite(*s.texture);
-		sprite.setTextureRect(s.textureRect);
-		sprite.setPosition(s.position);
-		sprite.setRotation(s.rotation);
-		sprite.setScale(s.scale);
-		sprite.setColor(s.color);
+	// Draw map
+	window.draw(frame.tileVertices);
 
-		window.draw(sprite);
+	// Draw sprites
+	for (auto &sprite : frame.sprites) {
+		drawSprite(window, sprite, 2);
 	}
 }
 

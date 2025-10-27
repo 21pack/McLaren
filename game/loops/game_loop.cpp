@@ -1,11 +1,12 @@
 #include "game_loop.h"
 #include "../../engine/components.h"
 #include "../../engine/engine.h"
+#include "../../engine/image_manager.h"
 #include "../../engine/render.h"
 #include "../../engine/systems.h"
-#include "../../engine/texture.h"
 #include "../../engine/tile.h"
 #include <memory>
+#include <random>
 
 GameLoop::GameLoop() : width(50), height(50) { tiles.resize(width * height); }
 
@@ -31,7 +32,7 @@ void GameLoop::init(engine::Engine &engine) {
 										   sf::IntRect({0, 0}, {600, 504}),
 										   targetPudgeSize);
 
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 3; i++) {
 		auto npc = m_registry.create();
 		m_registry.emplace<engine::Position>(npc, sf::Vector2f{i * 4.f, i * 4.f});
 		m_registry.emplace<engine::Rotation>(npc, 0.f);
@@ -42,113 +43,138 @@ void GameLoop::init(engine::Engine &engine) {
 }
 
 void GameLoop::buildStaticWorld() {
-	const int tileWidth = 64;
+	const int tileWidth = 32;
 	const int tileHeight = 32;
-	const int tilesPerRow = 16;
 
-	const int tileGrass = 0;
-	const int tileWater = 304;
-	const int tileCliffBottom = 33;
-	const int tileCliffRight = 36;
-	const int tileCliffRightBottomAngle = 80;
+	auto &imageManager = m_engine->imageManager;
+
+	struct TileData {
+		sf::Image *image;
+		int height;
+	};
+
+	std::unordered_map<int, TileData> tileImages = {
+		{0,
+		 {&imageManager.getImage("game/assets/tileset/tile_022.png"), 0}}, // grass
+		{1, {&imageManager.getImage("game/assets/tileset/tile_000.png"), 0}}, // sand
+		{2,
+		 {&imageManager.getImage("game/assets/tileset/tile_104.png"), -2}}, // water
+		{3,
+		 {&imageManager.getImage("game/assets/tileset/tile_064.png"), 2}}, // rocks
+	};
 
 	auto getIndex = [&](int x, int y) { return y * width + x; };
 
 	// Fill the entire map with grass
-	const engine::Tile defaultGrassTile{tileGrass, false};
+	const engine::Tile defaultGrassTile{{0}, false};
 	std::fill(tiles.begin(), tiles.end(), defaultGrassTile);
 
-	// Water
-	for (int y = 5; y < height - 5; ++y) {
-		for (int x = 5; x < 15; ++x) {
-			tiles[getIndex(x, y)].id = tileWater;
-			tiles[getIndex(x, y)].solid = true;
-		}
-	}
+	std::mt19937 rng(52);
+	std::uniform_int_distribution<int> chance(0, 2);
 
-	// 4. Rocky cliff at the edges of the map
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			if (y == height - 3 && x < width - 3) {
-				tiles[getIndex(x, y)].id = tileCliffBottom;
-				tiles[getIndex(x, y)].solid = true;
-			} else if (y == height - 2 && x < width - 2) {
-				tiles[getIndex(x, y)].id = tileCliffBottom + tilesPerRow;
-				tiles[getIndex(x, y)].solid = true;
-			} else if (y == height - 1 && x < width - 1) {
-				tiles[getIndex(x, y)].id = tileCliffBottom + 2 * tilesPerRow;
-				tiles[getIndex(x, y)].solid = true;
-			}
-
-			if (x == width - 3 && y < height - 3) {
-				tiles[getIndex(x, y)].id = tileCliffRight;
-				tiles[getIndex(x, y)].solid = true;
-			} else if (x == width - 2 && y < height - 2) {
-				tiles[getIndex(x, y)].id = tileCliffRight + tilesPerRow;
-				tiles[getIndex(x, y)].solid = true;
-			} else if (x == width - 1 && y < height - 1) {
-				tiles[getIndex(x, y)].id = tileCliffRight + 2 * tilesPerRow;
-				tiles[getIndex(x, y)].solid = true;
-			}
-
-			if (x == width - 3 && y == height - 3) {
-				tiles[getIndex(x, y)].id = tileCliffRightBottomAngle;
-				tiles[getIndex(x, y)].solid = true;
-			} else if (x == width - 2 && y == height - 2) {
-				tiles[getIndex(x, y)].id = tileCliffRightBottomAngle + tilesPerRow;
-				tiles[getIndex(x, y)].solid = true;
-			} else if (x == width - 1 && y == height - 1) {
-				tiles[getIndex(x, y)].id =
-					tileCliffRightBottomAngle + 2 * tilesPerRow;
-				tiles[getIndex(x, y)].solid = true;
+	auto makeJaggedRegion = [&](int minX, int maxX, int minY, int maxY, int tileId) {
+		for (int y = minY; y < maxY; ++y) {
+			for (int x = minX; x < maxX; ++x) {
+				if (x >= 0 && x < width && y >= 0 && y < height) {
+					tiles[getIndex(x, y)] = {{tileId}, true};
+				}
 			}
 		}
-	}
 
-	int texWidth = (width + height) * (tileWidth / 2);
-	int texHeight = (width + height) * (tileHeight / 2);
+		const int margin = 2;
+		for (int y = minY - margin; y <= maxY + margin; ++y) {
+			for (int x = minX - margin; x <= maxX + margin; ++x) {
+				if (x < 0 || x >= width || y < 0 || y >= height)
+					continue;
 
-	m_engine->camera.setTileSize((float)tileWidth, (float)tileHeight);
+				if (x >= minX && x < maxX && y >= minY && y < maxY)
+					continue;
 
-	m_staticMapTexture = std::make_unique<sf::RenderTexture>(
-		sf::RenderTexture(sf::Vector2u(texWidth, texHeight)));
-	m_staticMapTexture->clear(sf::Color::Transparent);
+				bool adjacent = false;
+				for (int dy = -1; dy <= 1; ++dy) {
+					for (int dx = -1; dx <= 1; ++dx) {
+						int nx = x + dx, ny = y + dy;
+						if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+							if (tiles[getIndex(nx, ny)].layerIds[0] == tileId) {
+								adjacent = true;
+								break;
+							}
+						}
+					}
+					if (adjacent)
+						break;
+				}
 
-	auto &textureManager = m_engine->texture;
-
-	sf::Sprite tileSprite(
-		textureManager.getTexture("game/assets/grassland_tiles.png"));
-
-	auto getTileRect = [&](int tileId) -> sf::IntRect {
-		int tileX = tileId % tilesPerRow;
-		int tileY = tileId / tilesPerRow;
-
-		return sf::IntRect({tileX * tileWidth, tileY * tileHeight},
-						   {tileWidth, tileHeight});
+				if (adjacent && chance(rng) == 0) {
+					tiles[getIndex(x, y)] = {{tileId}, true};
+				}
+			}
+		}
 	};
 
+	// Sand
+	makeJaggedRegion(45, width, 0, height, 1);
+
+	// Water
+	makeJaggedRegion(7, 15, 9, height - 9, 2);
+
+	// Rocky cliff at the edges of the map
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
-			const int tileId = tiles[getIndex(x, y)].id;
+			if (y == height - 1 && x < width) {
+				tiles[getIndex(x, y)] = {{0, 3}, true};
+			}
 
-			sf::IntRect tileRect = getTileRect(tileId);
-			tileSprite.setTextureRect(tileRect);
+			if (x == width - 1 && y < height) {
+				tiles[getIndex(x, y)] = {{0, 3}, true};
+			}
 
-			sf::Vector2f screenPos =
-				m_engine->camera.worldToScreen({(float)x, (float)y});
-
-			screenPos.x += texWidth / 2.0f - tileWidth / 2.0f;
-			screenPos.y += tileHeight / 2.0f;
-
-			tileSprite.setPosition(screenPos);
-
-			m_staticMapTexture->draw(tileSprite);
+			if (x == width - 1 && y == height) {
+				tiles[getIndex(x, y)] = {{0, 3}, true};
+			}
 		}
 	}
 
-	m_staticMapTexture->display();
-	m_staticMapSprite =
-		std::make_unique<sf::Sprite>(m_staticMapTexture->getTexture());
+	m_engine->camera.setTileSize((float)tileWidth, (float)tileHeight / 2);
+	m_staticMapPoints.setPrimitiveType(sf::PrimitiveType::Points);
+	const int step = 1; // If want to make draw faster, you can increase it
+
+	m_staticMapPoints.clear();
+
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			const auto &tile = tiles[getIndex(x, y)];
+			sf::Vector2f isoVec =
+				m_engine->camera.worldToScreen({(float)x, (float)y});
+
+			for (int layerId : tile.layerIds) {
+				if (tileImages.find(layerId) == tileImages.end()) {
+					continue;
+				}
+
+				const TileData &tileData = tileImages[layerId];
+				sf::Image &tileImage = *tileData.image;
+				int layerHeight = tileData.height;
+
+				for (int ty = 0; ty < tileHeight; ty += step) {
+					for (int tx = 0; tx < tileWidth; tx += step) {
+						if (tx < 0 || ty < 0 || tx >= tileWidth || ty >= tileHeight)
+							continue;
+
+						sf::Color color =
+							tileImage.getPixel({(unsigned int)tx, (unsigned int)ty});
+						if (color.a == 0)
+							continue;
+
+						float pixelX = isoVec.x + tx;
+						float pixelY = isoVec.y + ty - layerHeight;
+
+						m_staticMapPoints.append({{pixelX, pixelY}, color});
+					}
+				}
+			}
+		}
+	}
 }
 
 void GameLoop::update(engine::Input &input, float dt) {
@@ -168,23 +194,10 @@ void GameLoop::update(engine::Input &input, float dt) {
 void GameLoop::collectRenderData(engine::RenderFrame &frame,
 								 engine::Camera &camera) {
 	// Collecting static map texture
-
-	engine::RenderFrame::SpriteData mapSprite;
-	mapSprite.texture = &m_staticMapTexture->getTexture();
-	mapSprite.textureRect =
-		sf::IntRect({0, 0}, {(int)m_staticMapTexture->getSize().x,
-							 (int)m_staticMapTexture->getSize().y});
-	mapSprite.position = {-(m_staticMapTexture->getSize().x / 2.0f),
-						  -(m_staticMapTexture->getSize().y / 2.0f)};
-	mapSprite.scale = {1.f, 1.f};
-	mapSprite.rotation = sf::Angle::Zero;
-	mapSprite.color = sf::Color::White;
-
-	frame.sprites.push_back(mapSprite);
+	frame.tileVertices = m_staticMapPoints;
 
 	// Collecting entities
-
-	systems::renderSystem(m_registry, frame, camera, m_engine->texture);
+	systems::renderSystem(m_registry, frame, camera, m_engine->imageManager);
 }
 
 bool GameLoop::isFinished() const { return m_finished; }

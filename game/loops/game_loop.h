@@ -31,7 +31,6 @@ class GameLoop : public engine::ILoop {
 	int width;
 	int height;
 
-	std::unique_ptr<sf::RenderTexture> m_staticMapTexture;
-	std::unique_ptr<sf::Sprite> m_staticMapSprite;
+	sf::VertexArray m_staticMapPoints;
 	std::vector<engine::Tile> tiles;
 };

@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/Rect.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <string>
