@@ -62,6 +62,9 @@ if(BUILD_TESTING)
 
     add_executable(run_tests
         engine/tests/camera_test.cpp
+        engine/tests/system_animation_test.cpp
+        engine/tests/system_input_test.cpp
+        engine/tests/system_movement_test.cpp
     )
 
     target_link_libraries(run_tests PRIVATE
