@@ -33,6 +33,9 @@ void Render::drawSprite(sf::RenderWindow &window,
 	std::vector<sf::Vertex> vertices;
 	vertices.reserve((texW / step) * (texH / step));
 
+	float zoom = 2.f;
+	int pointSize = static_cast<int>(std::ceil(zoom));
+
 	for (int ty = 0; ty < texH; ty += step) {
 		for (int tx = 0; tx < texW; tx += step) {
 			// Local pixel coordinates
@@ -63,10 +66,14 @@ void Render::drawSprite(sf::RenderWindow &window,
 								 texColor.b * sprite.color.b / 255,
 								 texColor.a * sprite.color.a / 255);
 
-			sf::Vertex vertex;
-			vertex.position = sf::Vector2f(worldX, worldY);
-			vertex.color = texColor;
-			vertices.push_back(vertex);
+			for (int dy = 0; dy < pointSize; ++dy) {
+				for (int dx = 0; dx < pointSize; ++dx) {
+					sf::Vertex vertex;
+					vertex.position = sf::Vector2f(worldX + dx, worldY + dy);
+					vertex.color = texColor;
+					vertices.push_back(vertex);
+				}
+			}
 		}
 	}
 
@@ -84,7 +91,7 @@ void Render::drawFrame(const RenderFrame &frame) {
 
 	// Draw sprites
 	for (auto &sprite : frame.sprites) {
-		drawSprite(window, sprite, 2);
+		drawSprite(window, sprite, 1);
 	}
 }
 

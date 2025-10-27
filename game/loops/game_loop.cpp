@@ -8,7 +8,7 @@
 #include <memory>
 #include <random>
 
-GameLoop::GameLoop() : width(50), height(50) { tiles.resize(width * height); }
+GameLoop::GameLoop() : width(25), height(25) { tiles.resize(width * height); }
 
 void GameLoop::init(engine::Engine &engine) {
 	m_engine = &engine;
@@ -22,23 +22,23 @@ void GameLoop::init(engine::Engine &engine) {
 
 	// Creating entities (player, NPC, etc.)
 
-	sf::Vector2f targetPudgeSize{128.f, 128.f};
+	sf::Vector2f targetPudgeSize{64.f, 64.f};
 
 	auto player = m_registry.create();
 	m_registry.emplace<engine::PlayerControlled>(player);
 	m_registry.emplace<engine::Position>(player, sf::Vector2f{0.f, 0.f});
 	m_registry.emplace<engine::Velocity>(player);
-	m_registry.emplace<engine::Renderable>(player, "game/assets/player.png",
-										   sf::IntRect({0, 0}, {600, 504}),
-										   targetPudgeSize);
+	m_registry.emplace<engine::Renderable>(
+		player, "game/assets/critters/wolf/wolf-idle.png",
+		sf::IntRect({0, 0}, {64, 64}), targetPudgeSize);
 
-	for (int i = 0; i < 3; i++) {
+	for (int i = 0; i < 5; i++) {
 		auto npc = m_registry.create();
 		m_registry.emplace<engine::Position>(npc, sf::Vector2f{i * 4.f, i * 4.f});
 		m_registry.emplace<engine::Rotation>(npc, 0.f);
-		m_registry.emplace<engine::Renderable>(npc, "game/assets/player.png",
-											   sf::IntRect({0, 0}, {600, 504}),
-											   targetPudgeSize);
+		m_registry.emplace<engine::Renderable>(
+			npc, "game/assets/critters/wolf/wolf-bite.png",
+			sf::IntRect({0, 0}, {64, 64}), targetPudgeSize);
 	}
 }
 
@@ -141,6 +141,9 @@ void GameLoop::buildStaticWorld() {
 
 	m_staticMapPoints.clear();
 
+	float zoom = m_engine->camera.zoom;
+	int pointSize = static_cast<int>(std::ceil(zoom));
+
 	for (int y = 0; y < height; ++y) {
 		for (int x = 0; x < width; ++x) {
 			const auto &tile = tiles[getIndex(x, y)];
@@ -166,10 +169,15 @@ void GameLoop::buildStaticWorld() {
 						if (color.a == 0)
 							continue;
 
-						float pixelX = isoVec.x + tx;
-						float pixelY = isoVec.y + ty - layerHeight;
+						float pixelX = isoVec.x + tx * zoom;
+						float pixelY = isoVec.y + ty * zoom - layerHeight;
 
-						m_staticMapPoints.append({{pixelX, pixelY}, color});
+						for (int dy = 0; dy < pointSize; ++dy) {
+							for (int dx = 0; dx < pointSize; ++dx) {
+								m_staticMapPoints.append(
+									{{pixelX + dx, pixelY + dy}, color});
+							}
+						}
 					}
 				}
 			}
