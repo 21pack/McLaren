@@ -27,6 +27,7 @@ class GameLoop : public engine::ILoop {
 	engine::Engine *m_engine = nullptr;
 
 	void generateTileMap(std::unordered_map<int, engine::TileData> &tileImages);
+	void gameAnimationSystem(float dt);
 
 	int width;
 	int height;

@@ -44,11 +44,9 @@ void GameLoop::init(engine::Engine &engine) {
 	sf::IntRect frameRect({0, 0}, {64, 64});
 
 	// Wolf
-	std::unordered_map<engine::AnimationState, engine::AnimationClip> wolfClips = {
-		{engine::AnimationState::Idle,
-		 {"game/assets/critters/wolf/wolf-idle.png", 4, 0.15f, frameRect}},
-		{engine::AnimationState::Run,
-		 {"game/assets/critters/wolf/wolf-run.png", 8, 0.08f, frameRect}},
+	std::unordered_map<int, engine::AnimationClip> wolfClips = {
+		{0, {"game/assets/critters/wolf/wolf-idle.png", 4, 0.15f, frameRect}},
+		{1, {"game/assets/critters/wolf/wolf-run.png", 8, 0.08f, frameRect}},
 	};
 
 	auto wolf =
@@ -141,12 +139,39 @@ void GameLoop::generateTileMap(
 	}
 }
 
+void GameLoop::gameAnimationSystem(float dt) {
+	auto view =
+		m_registry.view<engine::Animation, engine::Velocity, engine::Renderable>();
+
+	for (auto entity : view) {
+		auto &anim = view.get<engine::Animation>(entity);
+		auto &vel = view.get<engine::Velocity>(entity);
+		auto &render = view.get<engine::Renderable>(entity);
+
+		int newState =
+			(std::sqrt(vel.value.x * vel.value.x + vel.value.y * vel.value.y) > 0.1f)
+				? 1
+				: 0;
+
+		if (anim.state != newState) {
+			anim.state = newState;
+			anim.frameIdx = 0;
+			anim.frameTime = 0.f;
+		}
+
+		const auto &clip = anim.clips.at(anim.state);
+		render.textureName = clip.texture;
+		render.textureRect = clip.frameRect;
+	}
+}
+
 void GameLoop::update(engine::Input &input, float dt) {
 	systems::playerInputSystem(m_registry, input);
 	systems::npcFollowPlayerSystem(m_registry, dt);
 	systems::npcWanderSystem(m_registry, dt);
 	systems::movementSystem(m_registry, dt);
 	systems::animationSystem(m_registry, dt);
+	gameAnimationSystem(dt);
 
 	// camera follow
 	auto playerView =

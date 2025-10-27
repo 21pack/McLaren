@@ -25,10 +25,9 @@ void npcFollowPlayerSystem(entt::registry &registry, float dt);
 
 void npcWanderSystem(entt::registry &registry, float dt);
 
-entt::entity createNPC(
-	entt::registry &registry, const sf::Vector2f &pos,
-	const sf::Vector2f &targetSize,
-	const std::unordered_map<engine::AnimationState, engine::AnimationClip> &clips,
-	float speed);
+entt::entity createNPC(entt::registry &registry, const sf::Vector2f &pos,
+					   const sf::Vector2f &targetSize,
+					   const std::unordered_map<int, engine::AnimationClip> &clips,
+					   float speed);
 
 } // namespace systems
