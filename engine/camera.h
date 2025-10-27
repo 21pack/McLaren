@@ -5,7 +5,7 @@ namespace engine {
 
 struct Camera {
 	sf::Vector2f position; // Camera coordinates in the world
-	float zoom = 1.0f;	   // TODO: needs?
+	float zoom = 2.0f;	   // TODO: needs?
 
 	sf::Vector2f worldToScreen(sf::Vector2f worldPos)
 		const; // Converts world coordinates to screen coordinates (isometry)
@@ -19,7 +19,7 @@ struct Camera {
 	}
 
   private:
-	float tileWidth = 64.f;
+	float tileWidth = 32.f;
 	float tileHeight = 32.f;
 };
 

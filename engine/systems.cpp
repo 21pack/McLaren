@@ -97,9 +97,12 @@ void renderSystem(entt::registry &registry, engine::RenderFrame &frame,
 			float scaleY = render.targetSize.y / sourceHeight;
 
 			float uniformScale = std::min(scaleX, scaleY);
+
+			uniformScale *= camera.zoom;
+
 			spriteData.scale = {uniformScale, uniformScale};
 		} else {
-			spriteData.scale = {1.f, 1.f};
+			spriteData.scale = {camera.zoom, camera.zoom};
 		}
 
 		// apply isometric position & rotation
