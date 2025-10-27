@@ -26,8 +26,6 @@ struct Rotation {
 
 enum class Direction { Down = 0, Right = 1, Left = 2, Up = 3 };
 
-enum class AnimationState { Idle, Run };
-
 struct AnimationClip {
 	std::string texture;		// Texture name
 	int frameCount = 1;			// Number of frames per line
@@ -36,12 +34,12 @@ struct AnimationClip {
 };
 
 struct Animation {
-	std::unordered_map<AnimationState, AnimationClip> clips;
-	AnimationState state = AnimationState::Idle; // current state
-	int frameIdx = 0;							 // current frame
-	float frameTime = 0.f;						 // accumulated time
-	int row = 0;								 // current line (direction)
-	Direction direction = Direction::Down;		 // current direction
+	std::unordered_map<int, AnimationClip> clips;
+	int state = 0;						   // current state
+	int frameIdx = 0;					   // current frame
+	float frameTime = 0.f;				   // accumulated time
+	int row = 0;						   // current line (direction)
+	Direction direction = Direction::Down; // current direction
 };
 
 struct Renderable {

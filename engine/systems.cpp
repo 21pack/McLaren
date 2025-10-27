@@ -104,19 +104,6 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 			currentRect.position.x += currentRect.size.x * anim->frameIdx;
 			currentRect.position.y += currentRect.size.y * anim->row;
 
-			float speed =
-				std::sqrt(vel.value.x * vel.value.x + vel.value.y * vel.value.y);
-			AnimationState newState =
-				(speed > 0.1f) ? AnimationState::Run : AnimationState::Idle;
-
-			if (anim->state != newState) {
-				anim->state = newState;
-				std::string desiredTexture;
-
-				anim->frameIdx = 0;
-				anim->frameTime = 0.f;
-			}
-
 			const auto &clip = anim->clips.at(anim->state);
 			render.textureName = clip.texture;
 		}
@@ -218,11 +205,10 @@ void npcWanderSystem(entt::registry &registry, float dt) {
 	}
 }
 
-entt::entity
-createNPC(entt::registry &registry, const sf::Vector2f &pos,
-		  const sf::Vector2f &targetSize,
-		  const std::unordered_map<AnimationState, AnimationClip> &clips,
-		  float speed) {
+entt::entity createNPC(entt::registry &registry, const sf::Vector2f &pos,
+					   const sf::Vector2f &targetSize,
+					   const std::unordered_map<int, AnimationClip> &clips,
+					   float speed) {
 
 	auto e = registry.create();
 	registry.emplace<Position>(e, pos);
@@ -230,14 +216,14 @@ createNPC(entt::registry &registry, const sf::Vector2f &pos,
 	registry.emplace<Velocity>(e);
 
 	Renderable render;
-	render.textureName = clips.at(AnimationState::Idle).texture;
-	render.textureRect = clips.at(AnimationState::Idle).frameRect;
+	render.textureName = clips.begin()->second.texture;
+	render.textureRect = clips.begin()->second.frameRect;
 	render.targetSize = targetSize;
 	registry.emplace<Renderable>(e, std::move(render));
 
 	Animation anim;
 	anim.clips = clips;
-	anim.state = AnimationState::Idle;
+	anim.state = clips.begin()->first;
 	registry.emplace<Animation>(e, std::move(anim));
 
 	return e;
