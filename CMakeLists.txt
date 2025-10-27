@@ -68,6 +68,7 @@ if(BUILD_TESTING)
         engine
         GTest::gtest
         GTest::gtest_main
+        SFML::Graphics EnTT::EnTT
     )
     
     add_test(NAME engine_tests COMMAND run_tests)
