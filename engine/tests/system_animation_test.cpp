@@ -11,9 +11,15 @@ TEST(SystemsTest, AnimationSystem) {
 	auto entity = registry.create();
 
 	auto &anim = registry.emplace<engine::Animation>(entity);
+
+	engine::AnimationClip idleClip;
+	idleClip.frameCount = 4;
+	idleClip.frameDuration = 0.1f;
+
+	anim.clips[engine::AnimationState::Idle] = idleClip;
+
+	anim.state = engine::AnimationState::Idle;
 	anim.frameIdx = 0;
-	anim.frameCount = 4;
-	anim.frameDuration = 0.1f;
 	anim.frameTime = 0.0f;
 
 	// run with dt < time to flip frame

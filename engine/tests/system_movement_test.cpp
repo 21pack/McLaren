@@ -14,6 +14,7 @@ TEST(SystemsTest, MovementSystem) {
 	auto entity = registry.create();
 	registry.emplace<engine::Position>(entity, sf::Vector2f{10.f, 20.f});
 	registry.emplace<engine::Velocity>(entity, sf::Vector2f{1.f, 0.f});
+	registry.emplace<engine::Speed>(entity, speed);
 
 	systems::movementSystem(registry, dt);
 
