@@ -1,6 +1,6 @@
 #pragma once
-#include <iostream>
 #include "image_manager.h"
+#include <iostream>
 
 namespace engine {
 
