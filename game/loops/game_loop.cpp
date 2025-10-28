@@ -75,7 +75,7 @@ void GameLoop::init() {
 	m_registry.emplace<engine::CastsShadow>(wolf1);
 
 	for (int i = 0; i < 2; i++) {
-		auto npc = systems::createNPC(m_registry, {i + 10.f, i + 10.f},
+		auto npc = systems::createNPC(m_registry, {i + 10.f, 0.f},
 									  targetWolfSize, wolfClips, 1.f);
 		m_registry.emplace<engine::CastsShadow>(npc);
 	}

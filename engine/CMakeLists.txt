@@ -9,4 +9,4 @@ target_link_libraries(engine PUBLIC
     cereal)
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-# add_subdirectory(tests)
+add_subdirectory(tests)
