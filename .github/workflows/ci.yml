@@ -1,13 +1,13 @@
 name: CI
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 defaults:
   run:
     shell: bash
 
 jobs:
-  build:
+  main:
     name: ${{ matrix.platform.name }} ${{ matrix.config.name }}
     runs-on: ${{ matrix.platform.os }}
 
@@ -15,33 +15,83 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-        # - { name: Windows VS2022, os: windows-2022  }
-        - { name: Linux GCC,      os: ubuntu-latest }
-        - { name: Linux Clang,    os: ubuntu-latest, flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ }
-        - { name: macOS,          os: macos-latest  }
+          # - { name: Windows VS2022, os: windows-2022  }
+          - { name: Linux GCC, os: ubuntu-latest }
+          - {
+              name: Linux Clang,
+              os: ubuntu-latest,
+              flags: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++,
+            }
+          - { name: macOS, os: macos-latest }
         config:
-        - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
-        - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
+          - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE }
+          - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE }
 
     steps:
-    - name: Install Linux Dependencies
-      if: runner.os == 'Linux'
-      run: sudo apt-get update && sudo apt-get install libxrandr-dev libxcursor-dev libxi-dev libudev-dev libflac-dev libvorbis-dev libgl1-mesa-dev libegl1-mesa-dev libfreetype-dev
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install \
+              libxrandr-dev \
+              libxcursor-dev \
+              libxi-dev \
+              libudev-dev \
+              libfreetype-dev \
+              libflac-dev \
+              libvorbis-dev \
+              libgl1-mesa-dev \
+              libegl1-mesa-dev \
+              libfreetype-dev
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Configure
-      run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}} -DBUILD_TESTING=ON
+      - name: Configure
+        run: cmake -B build ${{matrix.platform.flags}} ${{matrix.config.flags}} -DBUILD_TESTING=ON
 
-    - name: Build
-      run: cmake --build build --config Release
+      - name: Build
+        run: cmake --build build --config Release
 
-    - name: Run Tests
-      run: ctest --test-dir build -C Release --output-on-failure
+      - name: Run Tests
+        run: ctest --test-dir build -C Release --output-on-failure
 
-    - name: Run clang-format
-      run: ./scripts/formatter.sh
+  formatter:
+    name: Formatter
+    runs-on: ubuntu-latest
 
-    - name: Run clang-tidy
-      run: ./scripts/linter.sh
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run clang-format
+        run: ./scripts/formatter.sh
+
+  linter:
+    name: Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: |
+          sudo apt update
+          sudo apt install \
+              libxrandr-dev \
+              libxcursor-dev \
+              libxi-dev \
+              libudev-dev \
+              libfreetype-dev \
+              libflac-dev \
+              libvorbis-dev \
+              libgl1-mesa-dev \
+              libegl1-mesa-dev \
+              libfreetype-dev
+
+      - name: Build
+        run: ./scripts/build.sh
+
+      - name: Run clang-tidy
+        run: ./scripts/linter.sh

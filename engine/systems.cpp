@@ -204,8 +204,8 @@ void npcWanderSystem(entt::registry &registry, float dt) {
 			}
 		}
 
-		vel.value.x += (arc4random() % 3 - 1) * 0.1f;
-		vel.value.y += (arc4random() % 3 - 1) * 0.1f;
+		vel.value.x += (rand() % 3 - 1) * 0.1f;
+		vel.value.y += (rand() % 3 - 1) * 0.1f;
 
 		float len = std::sqrt(vel.value.x * vel.value.x + vel.value.y * vel.value.y);
 		if (len > 0.f)
