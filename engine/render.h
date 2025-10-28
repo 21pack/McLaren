@@ -8,7 +8,8 @@
 
 namespace engine {
 
-struct Render {
+class Render {
+  public:
 	sf::RenderWindow window;
 
 	Render(unsigned width = 1000u, unsigned height = 600u,
@@ -35,7 +36,8 @@ struct Render {
 					int step);
 };
 
-struct RenderQueue {
+class RenderQueue {
+  public:
 	std::shared_ptr<RenderFrame> frontFrame; // for draw
 	std::shared_ptr<RenderFrame> backFrame;	 // for render
 

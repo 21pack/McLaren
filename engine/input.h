@@ -7,7 +7,8 @@ namespace engine {
 
 struct Render;
 
-struct Input {
+class Input {
+  public:
 	std::map<sf::Keyboard::Key, bool> keys;
 
 	bool

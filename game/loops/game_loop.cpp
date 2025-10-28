@@ -1,10 +1,10 @@
 #include "game_loop.h"
-#include "../../engine/components.h"
-#include "../../engine/engine.h"
-#include "../../engine/image_manager.h"
-#include "../../engine/render.h"
-#include "../../engine/systems.h"
-#include "../../engine/tile.h"
+#include "components.h"
+#include "engine.h"
+#include "image_manager.h"
+#include "render.h"
+#include "systems.h"
+#include "tile.h"
 #include <memory>
 #include <random>
 
@@ -58,8 +58,8 @@ void GameLoop::init(engine::Engine &engine) {
 	m_registry.emplace<engine::ChasingPlayer>(wolf1);
 
 	for (int i = 0; i < 2; i++) {
-		auto wolf = systems::createNPC(m_registry, {i + 10.f, i + 10.f},
-									   targetWolfSize, wolfClips, 1.f);
+		systems::createNPC(m_registry, {i + 10.f, i + 10.f}, targetWolfSize,
+						   wolfClips, 1.f);
 	}
 }
 
