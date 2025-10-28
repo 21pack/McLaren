@@ -52,7 +52,7 @@ struct Renderable {
 // tag for an NPC that is chasing the player
 struct ChasingPlayer {};
 
-// tag component to idendify which entity controlled by user
+// tag component to identify which entity controlled by user
 struct PlayerControlled {};
 
 } // namespace engine
