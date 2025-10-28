@@ -16,9 +16,9 @@ TEST(SystemsTest, AnimationSystem) {
 	idleClip.frameCount = 4;
 	idleClip.frameDuration = 0.1f;
 
-	// anim.clips[engine::AnimationState::Idle] = idleClip;
+	anim.clips[0] = idleClip;
+	anim.state = 0;
 
-	// anim.state = engine::AnimationState::Idle;
 	anim.frameIdx = 0;
 	anim.frameTime = 0.0f;
 
