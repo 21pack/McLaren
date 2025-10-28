@@ -128,8 +128,9 @@ void Render::generateTileMapVertices(
 						if (color.a == 0)
 							continue;
 
-						float pixelX = isoVec.x + tx * zoom;
-						float pixelY = isoVec.y + ty * zoom - layerHeight;
+						float pixelX = isoVec.x + (static_cast<float>(tx) * zoom);
+						float pixelY = isoVec.y + (static_cast<float>(ty) * zoom) -
+									   (static_cast<float>(layerHeight) * zoom);
 
 						for (int dy = 0; dy < pointSize; ++dy) {
 							for (int dx = 0; dx < pointSize; ++dx) {
@@ -149,6 +150,9 @@ void Render::drawFrame(const RenderFrame &frame) {
 
 	// Draw map
 	window.draw(frame.tileVertices);
+
+	// Draw shadows
+	window.draw(frame.shadowVertices);
 
 	// Draw sprites
 	for (auto &sprite : frame.sprites) {

@@ -1,8 +1,10 @@
 #include "systems.h"
 #include "camera.h"
+#include "components.h"
 #include "image_manager.h"
 #include "input.h"
 #include "render_frame.h"
+#include "utils.h"
 #include <cmath>
 #include <random>
 
@@ -86,69 +88,139 @@ void animationSystem(entt::registry &registry, float dt) {
 
 void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &camera,
 				  ImageManager &imageManager) {
+	sf::FloatRect boundsCamera = camera.getBounds();
+
+	registry.sort<Position>([](const auto &lhs, const auto &rhs) {
+		if (lhs.value.y != rhs.value.y) {
+			return lhs.value.y < rhs.value.y;
+		}
+		return lhs.value.x < rhs.value.x;
+	});
 
 	auto view = registry.view<const Position, Renderable, const Velocity>();
 
-	sf::FloatRect boundsCamera = camera.getBounds();
+	const sf::Vector2f shadowVector = {1.f, .0f};
+	const sf::Color shadowColor(0, 0, 0, 100);
+	const int shadowStep = 1;
+	const int pointSize = static_cast<int>(std::ceil(camera.zoom));
+
+	frame.shadowVertices.setPrimitiveType(sf::PrimitiveType::Points);
+
 	for (auto entity : view) {
 		const auto &pos = view.get<const Position>(entity);
 		auto &render = view.get<Renderable>(entity);
-
-		sf::FloatRect boundsEntity(camera.worldToScreen(pos.value),
-								   {render.targetSize.x, render.targetSize.y});
-		if (!boundsEntity.findIntersection(boundsCamera).has_value()) {
-			continue;
-		}
-
-		const auto &vel = view.get<const Velocity>(entity);
-
-		// optional components
 		auto *anim = registry.try_get<Animation>(entity);
 		const auto *rot = registry.try_get<const Rotation>(entity);
 
-		RenderFrame::SpriteData spriteData;
-		spriteData.image = &imageManager.getImage(render.textureName);
+		sf::IntRect currentFrameRect = render.textureRect;
+		const sf::Image *entityImage = &imageManager.getImage(render.textureName);
 
-		// apply animation
-		sf::IntRect currentRect = render.textureRect;
 		if (anim) {
-			currentRect.position.x += currentRect.size.x * anim->frameIdx;
-			currentRect.position.y += currentRect.size.y * anim->row;
+			const auto &clip = anim->clips.at(anim->state);
+			entityImage = &imageManager.getImage(clip.texture);
 
-			auto it = anim->clips.find(anim->state);
-			if (it == anim->clips.end())
-				continue;
-
-			const auto &clip = it->second;
-			render.textureName = clip.texture;
+			currentFrameRect.position.x += currentFrameRect.size.x * anim->frameIdx;
+			currentFrameRect.position.y += currentFrameRect.size.y * anim->row;
 		}
 
-		spriteData.textureRect = currentRect;
+		// calculate content rect in case spritesheet with paddings.
+		// TODO: precalculate
+		sf::IntRect currentContentRect =
+			engine::calculateContentRect(*entityImage, currentFrameRect);
 
-		float sourceWidth = static_cast<float>(render.textureRect.size.x);
-		float sourceHeight = static_cast<float>(render.textureRect.size.y);
+		float frameWidth = static_cast<float>(currentFrameRect.size.x);
+		float frameHeight = static_cast<float>(currentFrameRect.size.y);
+		float contentWidth = static_cast<float>(currentContentRect.size.x);
+		float contentHeight = static_cast<float>(currentContentRect.size.y);
 
-		if (sourceWidth > 0.f && sourceHeight > 0.f) {
-			float scaleX = render.targetSize.x / sourceWidth;
-			float scaleY = render.targetSize.y / sourceHeight;
-
-			float uniformScale = std::min(scaleX, scaleY);
-
-			uniformScale *= camera.zoom;
-
-			spriteData.scale = {uniformScale, uniformScale};
-		} else {
-			spriteData.scale = {camera.zoom, camera.zoom};
+		float uniformScale = camera.zoom;
+		if (frameWidth > 0.f && frameHeight > 0.f) {
+			float scaleX = render.targetSize.x / frameWidth;
+			float scaleY = render.targetSize.y / frameHeight;
+			uniformScale = std::min(scaleX, scaleY) * camera.zoom;
 		}
 
-		// apply isometric position & rotation
-		spriteData.position = camera.worldToScreen(pos.value);
-		if (rot) {
-			spriteData.rotation = sf::degrees(rot->angle);
-		} else {
-			spriteData.rotation = sf::Angle::Zero;
+		float scaledFrameWidth = frameWidth * uniformScale;
+		float scaledFrameHeight = frameHeight * uniformScale;
+
+		const sf::Vector2f anchor = camera.worldToScreen(pos.value);
+		const float angle = (rot ? rot->angle * (3.14159f / 180.f) : 0.f);
+		const float cosA = std::cos(angle);
+		const float sinA = std::sin(angle);
+
+		// generate shadow
+		if (registry.all_of<CastsShadow>(entity)) {
+			const sf::Image &img = *entityImage;
+
+			int texW = currentContentRect.size.x;
+			int texH = currentContentRect.size.y;
+			int texLeft = currentContentRect.position.x;
+			int texTop = currentContentRect.position.y;
+
+			float contentAnchorX_tex =
+				static_cast<float>(texLeft) + contentWidth * 0.5f;
+			float contentAnchorY_tex = static_cast<float>(texTop) + contentHeight;
+
+			for (int ty = 0; ty < texH; ty += shadowStep) {
+				for (int tx = 0; tx < texW; tx += shadowStep) {
+
+					int u = currentFrameRect.position.x + texLeft + tx;
+					int v = currentFrameRect.position.y + texTop + ty;
+
+					if (u < 0 || v < 0 || u >= static_cast<int>(img.getSize().x) ||
+						v >= static_cast<int>(img.getSize().y))
+						continue;
+					if (img.getPixel({(unsigned int)u, (unsigned int)v}).a == 0)
+						continue;
+
+					float localX =
+						(static_cast<float>(texLeft + tx) - contentAnchorX_tex) *
+						uniformScale;
+					float localY =
+						(static_cast<float>(texTop + ty) - contentAnchorY_tex) *
+						uniformScale;
+
+					float rotatedX = localX * cosA - localY * sinA;
+					float rotatedY = localX * sinA + localY * cosA;
+					float z = -rotatedY;
+
+					float shadowX = (anchor.x + rotatedX) + (z * shadowVector.x);
+					float shadowY = (anchor.y + rotatedY) + (z * shadowVector.y);
+
+					for (int dy = 0; dy < pointSize; ++dy) {
+						for (int dx = 0; dx < pointSize; ++dx) {
+							frame.shadowVertices.append(
+								{{shadowX + dx, shadowY + dy}, shadowColor});
+						}
+					}
+				}
+			}
 		}
 
+		// draw sprite's content at bottom middle
+		sf::IntRect absoluteContentRect = currentContentRect;
+		absoluteContentRect.position.x += currentFrameRect.position.x;
+		absoluteContentRect.position.y += currentFrameRect.position.y;
+
+		float contentWidth_scaled =
+			static_cast<float>(currentContentRect.size.x) * uniformScale;
+		float contentHeight_scaled =
+			static_cast<float>(currentContentRect.size.y) * uniformScale;
+
+		float localX_tl = -contentWidth_scaled * 0.5f;
+		float localY_tl = -contentHeight_scaled;
+
+		float rotatedX_tl = localX_tl * cosA - localY_tl * sinA;
+		float rotatedY_tl = localX_tl * sinA + localY_tl * cosA;
+
+		sf::Vector2f spriteDrawPos = anchor + sf::Vector2f(rotatedX_tl, rotatedY_tl);
+
+		RenderFrame::SpriteData spriteData;
+		spriteData.image = entityImage;
+		spriteData.textureRect = absoluteContentRect;
+		spriteData.scale = {uniformScale, uniformScale};
+		spriteData.position = spriteDrawPos;
+		spriteData.rotation = sf::degrees(angle / (3.14159f / 180.f));
 		spriteData.color = render.color;
 		frame.sprites.push_back(spriteData);
 	}

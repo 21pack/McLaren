@@ -52,16 +52,19 @@ void GameLoop::init(engine::Engine &engine) {
 	};
 
 	auto wolf =
-		systems::createNPC(m_registry, {0.f, 0.f}, targetWolfSize, wolfClips, 5.f);
+		systems::createNPC(m_registry, {5.f, 5.f}, targetWolfSize, wolfClips, 5.f);
 	m_registry.emplace<engine::PlayerControlled>(wolf);
+	m_registry.emplace<engine::CastsShadow>(wolf);
 
 	auto wolf1 =
 		systems::createNPC(m_registry, {8.f, 8.f}, targetWolfSize, wolfClips, 2.5f);
 	m_registry.emplace<engine::ChasingPlayer>(wolf1);
+	m_registry.emplace<engine::CastsShadow>(wolf1);
 
 	for (int i = 0; i < 2; i++) {
-		systems::createNPC(m_registry, {i + 10.f, i + 10.f}, targetWolfSize,
-						   wolfClips, 1.f);
+		auto npc = systems::createNPC(m_registry, {i + 10.f, i + 10.f},
+									  targetWolfSize, wolfClips, 1.f);
+		m_registry.emplace<engine::CastsShadow>(npc);
 	}
 }
 
