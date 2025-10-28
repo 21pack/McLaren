@@ -1,7 +1,6 @@
 #pragma once
 
 #include "camera.h"
-#include "engine.h"
 #include "image_manager.h"
 #include "input.h"
 #include "loop.h"

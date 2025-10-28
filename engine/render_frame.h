@@ -1,8 +1,13 @@
-// render_frame.h
 #pragma once
-#include <SFML/Graphics.hpp>
+
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/Image.hpp>
+#include <SFML/Graphics/Rect.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
+#include <SFML/Graphics/View.hpp>
+#include <SFML/System/Angle.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <atomic>
-#include <memory>
 #include <vector>
 
 namespace engine {

@@ -1,6 +1,9 @@
 #include "render.h"
+
+#include "camera.h"
+#include "loop.h"
+#include "tile.h"
 #include <cmath>
-#include <iostream>
 
 namespace engine {
 

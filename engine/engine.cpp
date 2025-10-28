@@ -1,5 +1,6 @@
 #include "engine.h"
-#include <SFML/System/Clock.hpp>
+
+#include <SFML/System.hpp>
 #include <SFML/Window/Event.hpp>
 #include <iostream>
 #include <thread>
