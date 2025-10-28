@@ -25,6 +25,7 @@ struct RenderFrame {
 		sf::Color color = sf::Color::White;	  // sprite color
 	};
 
+	sf::VertexArray shadowVertices;
 	std::vector<SpriteData> sprites;
 	sf::VertexArray tileVertices;
 };

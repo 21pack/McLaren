@@ -50,6 +50,9 @@ struct Renderable {
 	sf::Color color = sf::Color::White;
 };
 
+// tag for an entity that should cast shadow
+struct CastsShadow {};
+
 // tag for an NPC that is chasing the player
 struct ChasingPlayer {};
 
