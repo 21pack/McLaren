@@ -14,7 +14,7 @@ struct Input {
 	pollEvents(Render &render); // Handles all window events (keyboard, mouse, close)
 
 	bool
-	isKeyDown(sf::Keyboard::Key key) const; // Сheck if a key is currently pressed
+	isKeyDown(sf::Keyboard::Key key) const; // Check if a key is currently pressed
 };
 
 } // namespace engine
