@@ -8,6 +8,8 @@
 #include <cmath>
 #include <random>
 
+#include <iostream>
+
 namespace systems {
 
 using namespace engine;
@@ -49,15 +51,32 @@ void playerInputSystem(entt::registry &registry, const Input &input) {
 	}
 }
 
-void movementSystem(entt::registry &registry, float dt) {
+void movementSystem(entt::registry &registry, std::vector<engine::Tile> tiles,
+					int worldWidth, int worldHeight, float dt) {
 	auto view = registry.view<Position, const Velocity, const Speed>();
 
 	for (auto entity : view) {
 		auto &pos = view.get<Position>(entity);
-		const auto &vel = view.get<Velocity>(entity);
+		auto &vel = view.get<Velocity>(entity);
 		const auto &speed = view.get<const Speed>(entity);
+		const auto newPos = vel.value * speed.value * dt;
+		std::cout << "\nposXY:" << pos.value.x << ":" << pos.value.y << "\n";
 
-		pos.value += vel.value * speed.value * dt;
+		auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
+		auto tileX = static_cast<int>(std::floor(pos.value.x + newPos.x));
+		auto tileY = static_cast<int>(std::floor(pos.value.y + newPos.y));
+		std::cout << "tileXY:" << tileX << ":" << tileY << "\n";
+
+		if (0 <= tileX < worldWidth && 0 <= tileY < worldHeight) {
+			auto tile = tiles[getIndex(tileX, tileY)];
+
+			if (!tile.solid) {
+				pos.value += newPos;
+				std::cout << "posNewXY:" << pos.value.x << ":" << pos.value.y
+						  << "\n";
+			}
+		}
+		// pos.value += vel.value * speed.value * dt;
 	}
 }
 
