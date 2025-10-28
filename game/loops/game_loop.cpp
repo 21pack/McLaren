@@ -107,7 +107,7 @@ void GameLoop::update(engine::Input &input, float dt) {
 	systems::playerInputSystem(m_registry, input);
 	systems::npcFollowPlayerSystem(m_registry, dt);
 	systems::npcWanderSystem(m_registry, dt);
-	systems::movementSystem(m_registry, dt);
+	systems::movementSystem(m_registry, tiles, width, height, dt);
 	systems::animationSystem(m_registry, dt);
 	gameAnimationSystem(dt);
 
