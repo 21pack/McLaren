@@ -51,7 +51,7 @@ void playerInputSystem(entt::registry &registry, const Input &input) {
 	}
 }
 
-void movementSystem(entt::registry &registry, std::vector<engine::Tile> tiles,
+void movementSystem(entt::registry &registry, std::vector<engine::Tile> &tiles,
 					int worldWidth, int worldHeight, float dt) {
 	auto view = registry.view<Position, const Velocity, const Speed>();
 
@@ -60,20 +60,20 @@ void movementSystem(entt::registry &registry, std::vector<engine::Tile> tiles,
 		auto &vel = view.get<Velocity>(entity);
 		const auto &speed = view.get<const Speed>(entity);
 		const auto newPos = vel.value * speed.value * dt;
-		std::cout << "\nposXY:" << pos.value.x << ":" << pos.value.y << "\n";
+		// std::cout << "\nposXY:" << pos.value.x << ":" << pos.value.y << "\n";
 
 		auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
-		auto tileX = static_cast<int>(std::floor(pos.value.x + newPos.x));
-		auto tileY = static_cast<int>(std::floor(pos.value.y + newPos.y));
-		std::cout << "tileXY:" << tileX << ":" << tileY << "\n";
+		auto tileX = static_cast<int>(pos.value.x + newPos.x - 0.5);
+		auto tileY = static_cast<int>(pos.value.y + newPos.y - 0.5);
+		// std::cout << "tileXY:" << tileX << ":" << tileY << "\n";
 
-		if (0 <= tileX < worldWidth && 0 <= tileY < worldHeight) {
+		if (tileX >= 0 && tileX < worldWidth && tileY >= 0 && tileY < worldHeight) {
 			auto tile = tiles[getIndex(tileX, tileY)];
 
 			if (!tile.solid) {
 				pos.value += newPos;
-				std::cout << "posNewXY:" << pos.value.x << ":" << pos.value.y
-						  << "\n";
+				// std::cout << "posNewXY:" << pos.value.x << ":" << pos.value.y
+				// 		  << "\n";
 			}
 		}
 		// pos.value += vel.value * speed.value * dt;

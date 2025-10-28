@@ -15,7 +15,7 @@ namespace systems {
 
 void playerInputSystem(entt::registry &registry, const engine::Input &input);
 
-void movementSystem(entt::registry &registry, std::vector<engine::Tile> tiles,
+void movementSystem(entt::registry &registry, std::vector<engine::Tile> &tiles,
 					int worldWidth, int worldHeight, float dt);
 
 void animationSystem(entt::registry &registry, float dt);
