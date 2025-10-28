@@ -9,7 +9,10 @@ struct Camera;
 struct Engine;
 struct World;
 
-struct ILoop {
+class ILoop {
+  public:
+	virtual ~ILoop() = default;
+
 	virtual void init(Engine &engine) {}
 	virtual void update(Input &input, float dt) = 0; // Updating scene logic
 	virtual void collectRenderData(RenderFrame &frame,

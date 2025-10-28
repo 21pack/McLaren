@@ -1,4 +1,4 @@
-#include "../engine/engine.h"
+#include "engine.h"
 #include "loops/game_loop.h"
 #include <memory>
 

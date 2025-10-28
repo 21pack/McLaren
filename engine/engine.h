@@ -9,7 +9,8 @@
 
 namespace engine {
 
-struct Engine {
+class Engine {
+  public:
 	Render render; // responsible for low-level rendering
 	Input input;   // input system
 	Camera camera;

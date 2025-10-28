@@ -1,8 +1,8 @@
 #pragma once
-#include "../../engine/camera.h"
-#include "../../engine/loop.h"
-#include "../../engine/render_frame.h"
-#include "../../engine/tile.h"
+#include "camera.h"
+#include "loop.h"
+#include "render_frame.h"
+#include "tile.h"
 #include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 #include <vector>

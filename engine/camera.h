@@ -3,7 +3,8 @@
 
 namespace engine {
 
-struct Camera {
+class Camera {
+  public:
 	sf::Vector2f position; // Camera coordinates in the world
 	float zoom = 2.0f;	   // TODO: needs?
 
