@@ -39,3 +39,9 @@ jobs:
 
     - name: Run Tests
       run: ctest --test-dir build -C Release --output-on-failure
+
+    - name: Run clang-format
+      run: ./scripts/formatter.sh
+
+    - name: Run clang-tidy
+      run: ./scripts/linter.sh
