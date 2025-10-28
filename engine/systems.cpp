@@ -86,9 +86,17 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 
 	auto view = registry.view<const Position, Renderable, const Velocity>();
 
+	sf::FloatRect boundsCamera = camera.getBounds();
 	for (auto entity : view) {
 		const auto &pos = view.get<const Position>(entity);
 		auto &render = view.get<Renderable>(entity);
+
+		sf::FloatRect boundsEntity(camera.worldToScreen(pos.value),
+								   {render.targetSize.x, render.targetSize.y});
+		if (!boundsEntity.findIntersection(boundsCamera).has_value()) {
+			continue;
+		}
+
 		const auto &vel = view.get<const Velocity>(entity);
 
 		// optional components

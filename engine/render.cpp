@@ -8,8 +8,7 @@ std::shared_ptr<RenderFrame> Render::collectFrame(ILoop &loop, Camera &camera) {
 	auto frame = std::make_shared<RenderFrame>();
 
 	frame->clearColor = sf::Color::Black;
-	frame->cameraView =
-		sf::View(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(1000.f, 600.f)));
+	frame->cameraView = sf::View(sf::FloatRect(sf::Vector2f(0, 0), camera.size));
 	frame->cameraView.setCenter(camera.position);
 
 	loop.collectRenderData(*frame, camera);
