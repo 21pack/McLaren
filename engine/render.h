@@ -1,12 +1,18 @@
 #pragma once
-#include "camera.h"
-#include "loop.h"
+
 #include "render_frame.h"
-#include "tile.h"
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/Window/VideoMode.hpp>
 #include <mutex>
+#include <unordered_map>
 
 namespace engine {
+
+class Camera;
+struct Tile;
+struct TileData;
+struct RenderFrame;
+struct ILoop;
 
 class Render {
   public:

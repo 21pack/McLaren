@@ -63,9 +63,12 @@ void animationSystem(entt::registry &registry, float dt) {
 	auto view = registry.view<Animation>();
 
 	for (auto entity : view) {
-		auto &anim = view.get<Animation>(entity);
-		const auto it = anim.clips.find(anim.state);
-		if (it == anim.clips.end())
+		auto *anim = registry.try_get<Animation>(entity);
+		if (!anim)
+			continue;
+
+		auto it = anim->clips.find(anim->state);
+		if (it == anim->clips.end())
 			continue;
 
 		const auto &clip = it->second;
@@ -73,10 +76,10 @@ void animationSystem(entt::registry &registry, float dt) {
 		if (clip.frameCount <= 1)
 			continue;
 
-		anim.frameTime += dt;
-		if (anim.frameTime >= clip.frameDuration) {
-			anim.frameTime -= clip.frameDuration;
-			anim.frameIdx = (anim.frameIdx + 1) % clip.frameCount;
+		anim->frameTime += dt;
+		if (anim->frameTime >= clip.frameDuration) {
+			anim->frameTime -= clip.frameDuration;
+			anim->frameIdx = (anim->frameIdx + 1) % clip.frameCount;
 		}
 	}
 }
@@ -112,7 +115,11 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 			currentRect.position.x += currentRect.size.x * anim->frameIdx;
 			currentRect.position.y += currentRect.size.y * anim->row;
 
-			const auto &clip = anim->clips.at(anim->state);
+			auto it = anim->clips.find(anim->state);
+			if (it == anim->clips.end())
+				continue;
+
+			const auto &clip = it->second;
 			render.textureName = clip.texture;
 		}
 

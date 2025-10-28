@@ -1,6 +1,6 @@
 #pragma once
+
 #include "components.h"
-#include <SFML/Graphics.hpp>
 #include <entt/entt.hpp>
 
 namespace engine {

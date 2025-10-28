@@ -1,15 +1,16 @@
 #pragma once
-#include "camera.h"
+
 #include "loop.h"
-#include "render_frame.h"
 #include "tile.h"
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/VertexArray.hpp>
 #include <entt/entt.hpp>
 #include <vector>
 
 namespace engine {
 struct Engine;
-}
+struct Camera;
+struct RenderFrame;
+} // namespace engine
 
 class GameLoop : public engine::ILoop {
   public:

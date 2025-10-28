@@ -1,11 +1,12 @@
 #include "game_loop.h"
+
+#include "camera.h"
 #include "components.h"
 #include "engine.h"
 #include "image_manager.h"
 #include "render.h"
+#include "render_frame.h"
 #include "systems.h"
-#include "tile.h"
-#include <memory>
 #include <random>
 
 GameLoop::GameLoop() : width(25), height(25) { tiles.resize(width * height); }
@@ -18,6 +19,7 @@ void GameLoop::init(engine::Engine &engine) {
 	m_engine->camera.position = screenCenter;
 
 	// Generate tiles once
+
 	auto &imageManager = m_engine->imageManager;
 
 	std::unordered_map<int, engine::TileData> tileImages = {
@@ -158,10 +160,6 @@ void GameLoop::gameAnimationSystem(float dt) {
 			anim.frameIdx = 0;
 			anim.frameTime = 0.f;
 		}
-
-		const auto &clip = anim.clips.at(anim.state);
-		render.textureName = clip.texture;
-		render.textureRect = clip.frameRect;
 	}
 }
 

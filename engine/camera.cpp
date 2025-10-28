@@ -1,4 +1,5 @@
 #include "camera.h"
+
 #include <cmath>
 #include <limits>
 

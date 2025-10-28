@@ -1,6 +1,6 @@
 #pragma once
-#include "image_manager.h"
-#include <iostream>
+
+#include <SFML/Graphics/Image.hpp>
 
 namespace engine {
 
