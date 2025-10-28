@@ -2,6 +2,8 @@
 
 Modern C++ Library for Axonometric Rendering Engine
 
+![demo](/demo.gif)
+
 ## Usage
 
 ### Install
