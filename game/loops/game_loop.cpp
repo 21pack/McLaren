@@ -11,15 +11,13 @@
 
 GameLoop::GameLoop() : width(25), height(25) { tiles.resize(width * height); }
 
-void GameLoop::init(engine::Engine &engine) {
-	m_engine = &engine;
-
+void GameLoop::init() {
+	m_engine = engine::Engine::get();
 	sf::Vector2f worldCenter = {width / 2.0f, height / 2.0f};
 	sf::Vector2f screenCenter = m_engine->camera.worldToScreen(worldCenter);
 	m_engine->camera.position = screenCenter;
 
 	// Generate tiles once
-
 	auto &imageManager = m_engine->imageManager;
 
 	std::unordered_map<int, engine::TileData> tileImages = {

@@ -14,7 +14,7 @@ class ILoop {
   public:
 	virtual ~ILoop() = default;
 
-	virtual void init(Engine &engine) {}
+	virtual void init() {}
 	virtual void update(Input &input, float dt) = 0; // Updating scene logic
 	virtual void collectRenderData(RenderFrame &frame,
 								   Camera &camera) = 0; // Rendering the scene

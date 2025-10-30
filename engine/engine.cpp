@@ -11,7 +11,7 @@ void Engine::setLoop(LoopPtr loop) {
 	activeLoop = std::move(loop);
 
 	if (activeLoop) {
-		activeLoop->init(*this);
+		activeLoop->init();
 	}
 }
 
@@ -91,6 +91,18 @@ void Engine::run() {
 	}
 
 	updateThread.join();
+}
+
+Engine* Engine::withLoop (LoopPtr loop) {
+	static Engine instance;
+	if (loop)
+		instance.setLoop(std::move(loop));
+
+	return &instance;
+}
+
+Engine* Engine::get () {
+	return withLoop(nullptr);
 }
 
 } // namespace engine

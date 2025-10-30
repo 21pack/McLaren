@@ -17,7 +17,7 @@ class GameLoop : public engine::ILoop {
 	GameLoop();
 	virtual ~GameLoop() = default;
 
-	void init(engine::Engine &engine) override;
+	void init() override;
 	void update(engine::Input &input, float dt) override;
 	void collectRenderData(engine::RenderFrame &frame,
 						   engine::Camera &camera) override;
