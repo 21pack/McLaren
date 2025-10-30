@@ -3,12 +3,9 @@
 #include <memory>
 
 int main() {
-	engine::Engine engine;
 
 	auto loop = std::make_unique<GameLoop>();
-	engine.setLoop(std::move(loop));
-
-	engine.run();
-
+	engine::Engine *e = engine::Engine::withLoop(std::move(loop));
+	e->run();
 	return 0;
 }
