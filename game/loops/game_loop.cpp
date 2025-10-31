@@ -16,16 +16,17 @@ GameLoop::GameLoop() {
 	width = world.world_width;
 	tiles.resize(width * height);
 	tileTextures = world.textures;
-	auto getIndex = [&](int x, int y) { return (y + height / 2 ) * width + (x + width / 2); };
+	auto getIndex = [&](int x, int y) {
+		return (y + height / 2) * width + (x + width / 2);
+	};
 	for (int i = 0; i < world.areas.size(); i++) {
 		auto a = world.areas[i];
 
-		for (int x= a.posX; x < a.posX + a.sizeX; ++x) {
+		for (int x = a.posX; x < a.posX + a.sizeX; ++x) {
 			for (int y = a.posY; y < a.posY + a.sizeY; ++y) {
 				tiles[getIndex(x, y)] = a.tile;
 			}
 		}
-
 	}
 }
 
@@ -38,8 +39,8 @@ void GameLoop::init() {
 	// Generate tiles once
 	auto &imageManager = m_engine->imageManager;
 	std::unordered_map<int, engine::TileData> tileImages;
-	for (auto keyvalue : tileTextures ) {
-		int key =keyvalue.first;
+	for (auto keyvalue : tileTextures) {
+		int key = keyvalue.first;
 		auto tex = keyvalue.second;
 		tileImages[key] = {&imageManager.getImage(tex.texture_src), tex.height};
 	}
@@ -49,8 +50,8 @@ void GameLoop::init() {
 	m_engine->camera.setTileSize(tileWidth, tileHeight / 2);
 
 	// generateTileMap(tileImages);
-	 m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
-										 tiles, width, height, tileImages);
+	m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
+											 tiles, width, height, tileImages);
 
 	// Creating entities (player, NPC, etc.)
 
@@ -79,8 +80,6 @@ void GameLoop::init() {
 		m_registry.emplace<engine::CastsShadow>(npc);
 	}
 }
-
-
 
 void GameLoop::gameAnimationSystem(float dt) {
 	auto view =
