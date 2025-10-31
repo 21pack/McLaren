@@ -1,0 +1,102 @@
+{
+    "world": {
+        "cereal_class_version": 0,
+        "world_height": 25,
+        "world_width": 25,
+        "textures": [
+            {
+                "key": 3,
+                "value": {
+                    "texture_src": "game/assets/tileset/tile_064.png",
+                    "height": 2
+                }
+            },
+            {
+                "key": 2,
+                "value": {
+                    "texture_src": "game/assets/tileset/tile_104.png",
+                    "height": -2
+                }
+            },
+            {
+                "key": 1,
+                "value": {
+                    "texture_src": "game/assets/tileset/tile_000.png",
+                    "height": 0
+                }
+            },
+            {
+                "key": 0,
+                "value": {
+                    "texture_src": "game/assets/tileset/tile_022.png",
+                    "height": 0
+                }
+            }
+        ],
+        "areas": [
+            {
+                "posX": -12,
+                "posY": -12,
+                "sizeX": 25,
+                "sizeY": 25,
+                "tile": {
+                    "textures_keys": [
+                        0
+                    ],
+                    "solid": false
+                }
+            },
+            {
+                "posX": -5,
+                "posY": -8,
+                "sizeX": 10,
+                "sizeY": 16,
+                "tile": {
+                    "textures_keys": [
+                        2
+                    ],
+                    "solid": true
+                }
+            },
+            {
+                "posX": -11,
+                "posY": -11,
+                "sizeX": 2,
+                "sizeY": 6,
+                "tile": {
+                    "textures_keys": [
+                        2
+                    ],
+                    "solid": true
+                }
+            },
+            {
+                "posX": 12,
+                "posY": -12,
+                "sizeX": 1,
+                "sizeY": 25,
+                "tile": {
+                    "textures_keys": [
+                        3
+                    ],
+                    "solid": true
+                }
+            },
+            {
+                "posX": -12,
+                "posY": 12,
+                "sizeX": 25,
+                "sizeY": 1,
+                "tile": {
+                    "textures_keys": [
+                        3
+                    ],
+                    "solid": true
+                }
+            }
+
+
+
+        ]
+    }
+}
