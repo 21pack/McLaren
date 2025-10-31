@@ -19,10 +19,16 @@ FetchContent_Declare(EnTT
 FetchContent_MakeAvailable(EnTT)
 
 FetchContent_Declare(cereal
-        GIT_REPOSITORY  https://github.com/USCiLab/cereal.git
-        GIT_TAG v1.3.2
-        GIT_SHALLOW ON)
-FetchContent_MakeAvailable(cereal)
+    GIT_REPOSITORY https://github.com/USCiLab/cereal.git
+    GIT_TAG v1.3.2
+    GIT_SHALLOW ON)
+FetchContent_GetProperties(cereal)
+if(NOT cereal_POPULATED)
+    FetchContent_Populate(cereal)
+endif()
+
+add_library(cereal INTERFACE)
+target_include_directories(cereal INTERFACE ${cereal_SOURCE_DIR}/include)
 
 add_subdirectory(engine)
 add_subdirectory(game)
