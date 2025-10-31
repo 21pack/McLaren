@@ -17,23 +17,14 @@ struct TileTexture
 	}
 };
 
-struct  TileType {
-	int textures_key;
-	bool solid;
-	template <class Archive>
-	void serialize(Archive& ar) {
-		ar(CEREAL_NVP(textures_key), CEREAL_NVP(solid));
-	}
-};
-
 struct Area {
 	sf::Rect<int> rect;
-	TileType type{};
+	Tile tile;
 	template <class Archive>
 	void serialize(Archive& ar) {
 		auto [posX,posY] = rect.position;
 		auto [sizeX, sizeY] = rect.size;
-		ar(CEREAL_NVP(posX),CEREAL_NVP(posY), CEREAL_NVP(sizeX), CEREAL_NVP(sizeY), CEREAL_NVP(type));
+		ar(CEREAL_NVP(posX),CEREAL_NVP(posY), CEREAL_NVP(sizeX), CEREAL_NVP(sizeY), CEREAL_NVP(tile));
 	}
 
 };
@@ -45,7 +36,7 @@ struct SerializableWorld {
 	std::unordered_map<int, TileTexture> textures;
 	std::vector<Area> areas;
 	template <class Archive>
-	void serialize(Archive& ar) {
+	void serialize(Archive& ar, const std::uint32_t version) {
 		ar(CEREAL_NVP(world_height), CEREAL_NVP(world_width),
 			CEREAL_NVP(textures), CEREAL_NVP(areas));
 	}
