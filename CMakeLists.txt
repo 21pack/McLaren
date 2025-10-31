@@ -18,5 +18,11 @@ FetchContent_Declare(EnTT
     GIT_SHALLOW ON)
 FetchContent_MakeAvailable(EnTT)
 
+FetchContent_Declare(cereal
+        GIT_REPOSITORY  https://github.com/USCiLab/cereal.git
+        GIT_TAG v1.3.2
+        GIT_SHALLOW ON)
+FetchContent_MakeAvailable(cereal)
+
 add_subdirectory(engine)
 add_subdirectory(game)

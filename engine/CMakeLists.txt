@@ -5,7 +5,8 @@ target_link_libraries(engine PUBLIC
     SFML::Graphics
     SFML::Window
     SFML::System
-    EnTT::EnTT)
+    EnTT::EnTT
+    cereal)
 target_include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(tests)
