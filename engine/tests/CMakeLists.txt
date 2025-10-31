@@ -1,5 +1,4 @@
 file(GLOB_RECURSE SOURCES_CXX *.cpp)
-list(REMOVE_ITEM SOURCES_CXX "${CMAKE_CURRENT_SOURCE_DIR}/system_movement_test.cpp")
 
 enable_testing()
 include(CTest)
