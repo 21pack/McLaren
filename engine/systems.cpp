@@ -54,29 +54,47 @@ void playerInputSystem(entt::registry &registry, const Input &input) {
 void movementSystem(entt::registry &registry, std::vector<engine::Tile> &tiles,
 					int worldWidth, int worldHeight, float dt) {
 	auto view = registry.view<Position, const Velocity, const Speed>();
+	auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
 
 	for (auto entity : view) {
 		auto &pos = view.get<Position>(entity);
 		auto &vel = view.get<Velocity>(entity);
 		const auto &speed = view.get<const Speed>(entity);
-		const auto newPos = vel.value * speed.value * dt;
-		// std::cout << "\nposXY:" << pos.value.x << ":" << pos.value.y << "\n";
 
-		auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
-		auto tileX = static_cast<int>(pos.value.x + newPos.x - 0.5);
-		auto tileY = static_cast<int>(pos.value.y + newPos.y - 0.5);
-		// std::cout << "tileXY:" << tileX << ":" << tileY << "\n";
+		sf::Vector2f newPos = pos.value;
+		sf::Vector2f delta = vel.value * speed.value * dt;
 
+		float nextX = pos.value.x + delta.x;
+		int tileX = static_cast<int>(nextX) - 1;
+		int tileY = static_cast<int>(pos.value.y);
+
+		bool canMoveX = true;
 		if (tileX >= 0 && tileX < worldWidth && tileY >= 0 && tileY < worldHeight) {
-			auto tile = tiles[getIndex(tileX, tileY)];
-
-			if (!tile.solid) {
-				pos.value += newPos;
-				// std::cout << "posNewXY:" << pos.value.x << ":" << pos.value.y
-				// 		  << "\n";
-			}
+			if (tiles[getIndex(tileX, tileY)].solid)
+				canMoveX = false;
+		} else {
+			canMoveX = false; // beyond the borders of world
 		}
-		// pos.value += vel.value * speed.value * dt;
+
+		if (canMoveX)
+			newPos.x = nextX;
+
+		float nextY = pos.value.y + delta.y;
+		tileX = static_cast<int>(newPos.x) - 1;
+		tileY = static_cast<int>(nextY);
+
+		bool canMoveY = true;
+		if (tileX >= 0 && tileX < worldWidth && tileY >= 0 && tileY < worldHeight) {
+			if (tiles[getIndex(tileX, tileY)].solid)
+				canMoveY = false;
+		} else {
+			canMoveY = false; // beyond the borders of world
+		}
+
+		if (canMoveY)
+			newPos.y = nextY;
+
+		pos.value = newPos;
 	}
 }
 

@@ -26,8 +26,6 @@ class Engine {
   private:
 	sf::Clock fpsClock;
 
-	void renderLoop();
-	void drawLoop();
 	Engine() {}
 };
 
