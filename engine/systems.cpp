@@ -58,41 +58,25 @@ void movementSystem(entt::registry &registry, std::vector<engine::Tile> &tiles,
 
 	for (auto entity : view) {
 		auto &pos = view.get<Position>(entity);
-		auto &vel = view.get<Velocity>(entity);
+		const auto &vel = view.get<const Velocity>(entity);
 		const auto &speed = view.get<const Speed>(entity);
 
 		sf::Vector2f newPos = pos.value;
 		sf::Vector2f delta = vel.value * speed.value * dt;
 
-		float nextX = pos.value.x + delta.x;
-		int tileX = static_cast<int>(nextX) - 1;
-		int tileY = static_cast<int>(pos.value.y);
+		auto canMove = [&](float newX, float newY) {
+			int tileX = static_cast<int>(newX) - 1;
+			int tileY = static_cast<int>(newY);
+			if (tileX < 0 || tileX >= worldWidth || tileY < 0 ||
+				tileY >= worldHeight)
+				return false;
+			return !tiles[getIndex(tileX, tileY)].solid;
+		};
 
-		bool canMoveX = true;
-		if (tileX >= 0 && tileX < worldWidth && tileY >= 0 && tileY < worldHeight) {
-			if (tiles[getIndex(tileX, tileY)].solid)
-				canMoveX = false;
-		} else {
-			canMoveX = false; // beyond the borders of world
-		}
-
-		if (canMoveX)
-			newPos.x = nextX;
-
-		float nextY = pos.value.y + delta.y;
-		tileX = static_cast<int>(newPos.x) - 1;
-		tileY = static_cast<int>(nextY);
-
-		bool canMoveY = true;
-		if (tileX >= 0 && tileX < worldWidth && tileY >= 0 && tileY < worldHeight) {
-			if (tiles[getIndex(tileX, tileY)].solid)
-				canMoveY = false;
-		} else {
-			canMoveY = false; // beyond the borders of world
-		}
-
-		if (canMoveY)
-			newPos.y = nextY;
+		if (canMove(pos.value.x + delta.x, pos.value.y))
+			newPos.x += delta.x;
+		if (canMove(newPos.x, pos.value.y + delta.y))
+			newPos.y += delta.y;
 
 		pos.value = newPos;
 	}
@@ -102,12 +86,12 @@ void animationSystem(entt::registry &registry, float dt) {
 	auto view = registry.view<Animation>();
 
 	for (auto entity : view) {
-		auto *anim = registry.try_get<Animation>(entity);
-		if (!anim)
+		auto &anim = view.get<Animation>(entity);
+		if (anim.clips.empty())
 			continue;
 
-		auto it = anim->clips.find(anim->state);
-		if (it == anim->clips.end())
+		auto it = anim.clips.find(anim.state);
+		if (it == anim.clips.end())
 			continue;
 
 		const auto &clip = it->second;
@@ -115,17 +99,17 @@ void animationSystem(entt::registry &registry, float dt) {
 		if (clip.frameCount <= 1)
 			continue;
 
-		anim->frameTime += dt;
-		if (anim->frameTime >= clip.frameDuration) {
-			anim->frameTime -= clip.frameDuration;
-			anim->frameIdx = (anim->frameIdx + 1) % clip.frameCount;
+		anim.frameTime += dt;
+		while (anim.frameTime >= clip.frameDuration) {
+			anim.frameTime -= clip.frameDuration;
+			anim.frameIdx = (anim.frameIdx + 1) % clip.frameCount;
 		}
 	}
 }
 
 void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &camera,
 				  ImageManager &imageManager) {
-	sf::FloatRect boundsCamera = camera.getBounds();
+	// sf::FloatRect boundsCamera = camera.getBounds();
 
 	registry.sort<Position>([](const auto &lhs, const auto &rhs) {
 		if (lhs.value.y != rhs.value.y) {
@@ -146,18 +130,18 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 	for (auto entity : view) {
 		const auto &pos = view.get<const Position>(entity);
 		auto &render = view.get<Renderable>(entity);
-		auto *anim = registry.try_get<Animation>(entity);
+		auto &anim = registry.get<Animation>(entity);
 		const auto *rot = registry.try_get<const Rotation>(entity);
 
 		sf::IntRect currentFrameRect = render.textureRect;
 		const sf::Image *entityImage = &imageManager.getImage(render.textureName);
 
-		if (anim) {
-			const auto &clip = anim->clips.at(anim->state);
+		if (!anim.clips.empty()) {
+			const auto &clip = anim.clips.at(anim.state);
 			entityImage = &imageManager.getImage(clip.texture);
 
-			currentFrameRect.position.x += currentFrameRect.size.x * anim->frameIdx;
-			currentFrameRect.position.y += currentFrameRect.size.y * anim->row;
+			currentFrameRect.position.x += currentFrameRect.size.x * anim.frameIdx;
+			currentFrameRect.position.y += currentFrameRect.size.y * anim.row;
 		}
 
 		// calculate content rect in case spritesheet with paddings.
@@ -177,8 +161,8 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 			uniformScale = std::min(scaleX, scaleY) * camera.zoom;
 		}
 
-		float scaledFrameWidth = frameWidth * uniformScale;
-		float scaledFrameHeight = frameHeight * uniformScale;
+		// float scaledFrameWidth = frameWidth * uniformScale;
+		// float scaledFrameHeight = frameHeight * uniformScale;
 
 		const sf::Vector2f anchor = camera.worldToScreen(pos.value);
 		const float angle = (rot ? rot->angle * (3.14159f / 180.f) : 0.f);
@@ -277,6 +261,15 @@ void npcFollowPlayerSystem(entt::registry &registry, float dt) {
 		auto &vel = npcView.get<Velocity>(entity);
 		auto &anim = npcView.get<Animation>(entity);
 
+		sf::Vector2f dir = playerPos.value - pos.value;
+		float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+
+		if (len > 3.f) {
+			vel.value = dir / len;
+		} else {
+			vel.value = {0.f, 0.f};
+		}
+
 		float length =
 			std::sqrt(vel.value.x * vel.value.x + vel.value.y * vel.value.y);
 		if (length > 0.01f) {
@@ -287,15 +280,6 @@ void npcFollowPlayerSystem(entt::registry &registry, float dt) {
 			} else {
 				anim.row = (dir.y > 0.f) ? 0 : 3; // down = 0, up = 3
 			}
-		}
-
-		sf::Vector2f dir = playerPos.value - pos.value;
-		float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
-
-		if (len > 3.f) {
-			vel.value = dir / len;
-		} else {
-			vel.value = {0.f, 0.f};
 		}
 	}
 }
@@ -333,6 +317,7 @@ entt::entity createNPC(entt::registry &registry, const sf::Vector2f &pos,
 					   const sf::Vector2f &targetSize,
 					   const std::unordered_map<int, AnimationClip> &clips,
 					   float speed) {
+	assert(!clips.empty() && "NPC must have at least one animation clip!");
 
 	auto e = registry.create();
 	registry.emplace<Position>(e, pos);
