@@ -18,12 +18,13 @@ struct TileTexture
 };
 
 struct Area {
-	sf::Rect<int> rect;
+	int posX;
+	int posY;
+	int sizeX;
+	int sizeY;
 	Tile tile;
 	template <class Archive>
 	void serialize(Archive& ar) {
-		auto [posX,posY] = rect.position;
-		auto [sizeX, sizeY] = rect.size;
 		ar(CEREAL_NVP(posX),CEREAL_NVP(posY), CEREAL_NVP(sizeX), CEREAL_NVP(sizeY), CEREAL_NVP(tile));
 	}
 
