@@ -42,7 +42,8 @@ jobs:
               libvorbis-dev \
               libgl1-mesa-dev \
               libegl1-mesa-dev \
-              libfreetype-dev
+              libfreetype-dev \
+              libboost-all-dev
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,7 +89,8 @@ jobs:
               libvorbis-dev \
               libgl1-mesa-dev \
               libegl1-mesa-dev \
-              libfreetype-dev
+              libfreetype-dev  \
+              libboost-all-dev
 
       - name: Build
         run: ./scripts/build.sh
