@@ -109,7 +109,7 @@ void animationSystem(entt::registry &registry, float dt) {
 
 void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &camera,
 				  ImageManager &imageManager) {
-	// sf::FloatRect boundsCamera = camera.getBounds();
+	sf::FloatRect boundsCamera = camera.getBounds();
 
 	registry.sort<Position>([](const auto &lhs, const auto &rhs) {
 		if (lhs.value.y != rhs.value.y) {
@@ -130,6 +130,13 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 	for (auto entity : view) {
 		const auto &pos = view.get<const Position>(entity);
 		auto &render = view.get<Renderable>(entity);
+
+		sf::FloatRect boundsEntity(camera.worldToScreen(pos.value),
+								   {render.targetSize.x, render.targetSize.y});
+		if (!boundsEntity.findIntersection(boundsCamera).has_value()) {
+			continue;
+		}
+
 		auto &anim = registry.get<Animation>(entity);
 		const auto *rot = registry.try_get<const Rotation>(entity);
 
