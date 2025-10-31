@@ -5,6 +5,7 @@
 #include <SFML/Graphics/VertexArray.hpp>
 #include <entt/entt.hpp>
 #include <vector>
+#include "serializable_world.h"
 
 namespace engine {
 struct Engine;
@@ -27,12 +28,11 @@ class GameLoop : public engine::ILoop {
 	entt::registry m_registry;
 	engine::Engine *m_engine = nullptr;
 
-	void generateTileMap(std::unordered_map<int, engine::TileData> &tileImages);
 	void gameAnimationSystem(float dt);
-
 	int width;
 	int height;
 
+	std::unordered_map<int, engine::TileTexture> tileTextures;
 	sf::VertexArray m_staticMapPoints;
 	std::vector<engine::Tile> tiles;
 };

@@ -6,10 +6,28 @@
 #include "image_manager.h"
 #include "render.h"
 #include "render_frame.h"
+#include "serializable_world.h"
 #include "systems.h"
 #include <random>
 
-GameLoop::GameLoop() : width(25), height(25) { tiles.resize(width * height); }
+GameLoop::GameLoop() {
+	engine::SerializableWorld world = engine::of_json("game/assets/worlds/1.json");
+	height = world.world_height;
+	width = world.world_width;
+	tiles.resize(width * height);
+	tileTextures = world.textures;
+	auto getIndex = [&](int x, int y) { return (y + height / 2 ) * width + (x + width / 2); };
+	for (int i = 0; i < world.areas.size(); i++) {
+		auto a = world.areas[i];
+
+		for (int x= a.posX; x < a.posX + a.sizeX; ++x) {
+			for (int y = a.posY; y < a.posY + a.sizeY; ++y) {
+				tiles[getIndex(x, y)] = a.tile;
+			}
+		}
+
+	}
+}
 
 void GameLoop::init() {
 	m_engine = engine::Engine::get();
@@ -19,24 +37,20 @@ void GameLoop::init() {
 
 	// Generate tiles once
 	auto &imageManager = m_engine->imageManager;
-
-	std::unordered_map<int, engine::TileData> tileImages = {
-		{0,
-		 {&imageManager.getImage("game/assets/tileset/tile_022.png"), 0}}, // grass
-		{1, {&imageManager.getImage("game/assets/tileset/tile_000.png"), 0}}, // sand
-		{2,
-		 {&imageManager.getImage("game/assets/tileset/tile_104.png"), -2}}, // water
-		{3,
-		 {&imageManager.getImage("game/assets/tileset/tile_064.png"), 2}}, // rocks
-	};
+	std::unordered_map<int, engine::TileData> tileImages;
+	for (auto keyvalue : tileTextures ) {
+		int key =keyvalue.first;
+		auto tex = keyvalue.second;
+		tileImages[key] = {&imageManager.getImage(tex.texture_src), tex.height};
+	}
 
 	const int tileWidth = 32.f;
 	const int tileHeight = 32.f;
 	m_engine->camera.setTileSize(tileWidth, tileHeight / 2);
 
-	generateTileMap(tileImages);
-	m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
-											 tiles, width, height, tileImages);
+	// generateTileMap(tileImages);
+	 m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
+										 tiles, width, height, tileImages);
 
 	// Creating entities (player, NPC, etc.)
 
@@ -66,81 +80,7 @@ void GameLoop::init() {
 	}
 }
 
-void GameLoop::generateTileMap(
-	std::unordered_map<int, engine::TileData> &tileImages) {
 
-	auto getIndex = [&](int x, int y) { return y * width + x; };
-
-	// Fill the entire map with grass
-	const engine::Tile defaultGrassTile{{0}, false};
-	std::fill(tiles.begin(), tiles.end(), defaultGrassTile);
-
-	std::mt19937 rng(52);
-	std::uniform_int_distribution<int> chance(0, 2);
-
-	auto makeJaggedRegion = [&](int minX, int maxX, int minY, int maxY, int tileId) {
-		for (int y = minY; y < maxY; ++y) {
-			for (int x = minX; x < maxX; ++x) {
-				if (x >= 0 && x < width && y >= 0 && y < height) {
-					tiles[getIndex(x, y)] = {{tileId}, true};
-				}
-			}
-		}
-
-		const int margin = 2;
-		for (int y = minY - margin; y <= maxY + margin; ++y) {
-			for (int x = minX - margin; x <= maxX + margin; ++x) {
-				if (x < 0 || x >= width || y < 0 || y >= height)
-					continue;
-
-				if (x >= minX && x < maxX && y >= minY && y < maxY)
-					continue;
-
-				bool adjacent = false;
-				for (int dy = -1; dy <= 1; ++dy) {
-					for (int dx = -1; dx <= 1; ++dx) {
-						int nx = x + dx, ny = y + dy;
-						if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-							if (tiles[getIndex(nx, ny)].layerIds[0] == tileId) {
-								adjacent = true;
-								break;
-							}
-						}
-					}
-					if (adjacent)
-						break;
-				}
-
-				if (adjacent && chance(rng) == 0) {
-					tiles[getIndex(x, y)] = {{tileId}, true};
-				}
-			}
-		}
-	};
-
-	// Sand
-	makeJaggedRegion(45, width, 0, height, 1);
-
-	// Water
-	makeJaggedRegion(7, 15, 9, height - 9, 2);
-
-	// Rocky cliff at the edges of the map
-	for (int y = 0; y < height; ++y) {
-		for (int x = 0; x < width; ++x) {
-			if (y == height - 1 && x < width) {
-				tiles[getIndex(x, y)] = {{0, 3}, true};
-			}
-
-			if (x == width - 1 && y < height) {
-				tiles[getIndex(x, y)] = {{0, 3}, true};
-			}
-
-			if (x == width - 1 && y == height) {
-				tiles[getIndex(x, y)] = {{0, 3}, true};
-			}
-		}
-	}
-}
 
 void GameLoop::gameAnimationSystem(float dt) {
 	auto view =
