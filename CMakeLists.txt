@@ -26,3 +26,7 @@ FetchContent_MakeAvailable(cereal)
 
 add_subdirectory(engine)
 add_subdirectory(game)
+
+set_property( DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build PROPERTY
+        COMPILE_OPTIONS "$<$<CXX_COMPILER_ID:MSVC>:/WX->;$<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wno-error>"
+)
