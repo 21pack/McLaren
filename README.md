@@ -2,7 +2,37 @@
 
 Modern C++ Library for Axonometric Rendering Engine
 
+## Overview
+
+McLaren is a *high-performance* C++ game engine specializing in isometric rendering. Built on top of [SFML](https://www.sfml-dev.org), it provides developers with *powerful* tools for creating engaging 2.5D games with *modern* graphics features.
+
+### Features
+
+* **Cross-Platform:** Runs on Windows, Linux, and macOS.
+* **Isometric Rendering:** True isometric projection with depth sorting.
+* **Sprites:** Animated objects and any sprite sheets.
+* **Dynamic Shadows.**
+* **Entity Component System:** Flexible and efficient game object management with [entt](https://github.com/skypjack/entt?ysclid=mhfjtbqbpf481919909) library.
+* **Performance Optimized:**
+  * Running the render in a separate thread;
+  * Initialization of static objects before the rendering loop;
+  * View culling for entity.
+
+## Demo Game
+
+**Wolf Meadow** is a sample game demonstrating McLaren's capabilities. In this interactive simulation, wolves roam dynamically across a meadow. The demo shows how you can move around the main character, the wolf. How another wolf follows him, and how two other wolves move independently on the map. The demo also shows the quality of the image and the display of shadows.
+
 ![demo](/demo.gif)
+
+## API Overview
+
+McLaren provides a clean, intuitive API for game development:
+
+* Creating a scene through the iLoop interface.
+* Adding your own components.
+* Support for animations, input/output, shadow settings, etc. through ready-made components.
+
+For more detailed information, you need to study the engine code and its documentation.
 
 ## Usage
 
@@ -45,10 +75,14 @@ sudo apt install \
 
 ## Authors
 
-* Maxim Rodionov. [GitHub](https://github.com/RodionovMaxim05), [Telegram](https://t.me/Maxoon22).
-* Dmitri Chirkov. [GitHub](https://github.com/kinokotakenoko9), [Telegram](https://t.me/chdmitri).
-* Nikita Shchutskii. [GitHub](https://github.com/ns-58), [Telegram](https://t.me/szcz00).
-* Vladimir Zaikin. [GitHub](https://github.com/Friend-zva), [Telegram](https://t.me/vo_va_w).
+* **Maxim Rodionov:** [GitHub](https://github.com/RodionovMaxim05), [Telegram](https://t.me/Maxoon22)
+* **Dmitri Chirkov:** [GitHub](https://github.com/kinokotakenoko9), [Telegram](https://t.me/chdmitri)
+* **Nikita Shchutskii:** [GitHub](https://github.com/ns-58), [Telegram](https://t.me/szcz00)
+* **Vladimir Zaikin:** [GitHub](https://github.com/Friend-zva), [Telegram](https://t.me/vo_va_w)
+
+## Contributing
+
+Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code style, commit message conventions, and pull request process.
 
 ## License
 
