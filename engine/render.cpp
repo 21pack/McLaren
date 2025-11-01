@@ -21,6 +21,7 @@ std::shared_ptr<RenderFrame> Render::collectFrame(ILoop &loop, Camera &camera) {
 
 void Render::drawSprite(sf::RenderWindow &window,
 						const RenderFrame::SpriteData &sprite, int step) {
+	window.draw(sprite.shadowVertices);
 	const auto &rect = sprite.textureRect;
 	int texW = rect.size.x;
 	int texH = rect.size.y;
@@ -84,11 +85,11 @@ void Render::drawSprite(sf::RenderWindow &window,
 					sf::PrimitiveType::Points);
 }
 
+
 void Render::generateTileMapVertices(
 	sf::VertexArray &vertices, Camera &camera, const std::vector<Tile> &tiles,
 	int worldWidth, int worldHeight,
 	std::unordered_map<int, engine::TileData> &tileImages) {
-
 	sf::Vector2f tileSize = camera.getTileSize();
 	float tileWidth = tileSize.x;
 	float tileHeight = tileSize.y * 2.f;
@@ -151,13 +152,10 @@ void Render::drawFrame(const RenderFrame &frame) {
 	// Draw map
 	window.draw(frame.tileVertices);
 
-	// Draw shadows
-	window.draw(frame.shadowVertices);
-
 	// Draw sprites
-	for (auto &sprite : frame.sprites) {
-		drawSprite(window, sprite, 1);
-	}
-}
+	for (auto &spr : frame.sprites) {
 
+			drawSprite(window, spr, 1);
+		}
+	}
 } // namespace engine

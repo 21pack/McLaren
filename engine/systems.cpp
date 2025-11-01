@@ -124,9 +124,11 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 	const int shadowStep = 1;
 	const int pointSize = static_cast<int>(std::ceil(camera.zoom));
 
-	frame.shadowVertices.setPrimitiveType(sf::PrimitiveType::Points);
 
 	for (auto entity : view) {
+		sf::VertexArray shadowVertices;
+		shadowVertices.clear();
+		shadowVertices.setPrimitiveType(sf::PrimitiveType::Points);
 		const auto &pos = view.get<const Position>(entity);
 		auto &render = view.get<Renderable>(entity);
 
@@ -219,7 +221,7 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 
 					for (int dy = 0; dy < pointSize; ++dy) {
 						for (int dx = 0; dx < pointSize; ++dx) {
-							frame.shadowVertices.append(
+							shadowVertices.append(
 								{{shadowX + dx, shadowY + dy}, shadowColor});
 						}
 					}
@@ -252,6 +254,7 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 		spriteData.position = spriteDrawPos;
 		spriteData.rotation = sf::degrees(angle / (3.14159f / 180.f));
 		spriteData.color = render.color;
+		spriteData.shadowVertices = shadowVertices;
 		frame.sprites.push_back(spriteData);
 	}
 }
