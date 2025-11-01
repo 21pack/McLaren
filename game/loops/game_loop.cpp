@@ -11,7 +11,8 @@
 #include <random>
 
 GameLoop::GameLoop() {
-	engine::SerializableWorld world = engine::of_json("game/assets/worlds/1.json");
+	engine::SerializableWorld world =
+		engine::of_json("game/assets/worlds/meadow.json");
 	height = world.world_height;
 	width = world.world_width;
 	tiles.resize(width * height);
