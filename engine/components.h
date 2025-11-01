@@ -9,24 +9,42 @@
 
 namespace engine {
 
+/**
+ * @brief Component representing 2D position in world space.
+ */
 struct Position {
 	sf::Vector2f value;
 };
 
+/**
+ * @brief Component representing movement speed scalar.
+ */
 struct Speed {
 	float value;
 };
 
+/**
+ * @brief Component representing 2D velocity vector.
+ */
 struct Velocity {
 	sf::Vector2f value;
 };
 
+/**
+ * @brief Component representing rotation angle in degrees.
+ */
 struct Rotation {
-	float angle = 0.f; // in degrees
+	float angle = 0.f;
 };
 
+/**
+ * @brief Enumeration for cardinal directions used in animations.
+ */
 enum class Direction { Down = 0, Right = 1, Left = 2, Up = 3 };
 
+/**
+ * @brief Component defining an animation clip with timing and frame data.
+ */
 struct AnimationClip {
 	std::string texture;		// Texture name
 	int frameCount = 1;			// Number of frames per line
@@ -34,29 +52,41 @@ struct AnimationClip {
 	sf::IntRect frameRect;		// Size of one frame
 };
 
+/**
+ * @brief Component managing animation state and playback.
+ */
 struct Animation {
 	std::unordered_map<int, AnimationClip> clips;
-	int state = 0;						   // current state
-	int frameIdx = 0;					   // current frame
-	float frameTime = 0.f;				   // accumulated time
-	int row = 0;						   // current line (direction)
-	Direction direction = Direction::Down; // current direction
+	int state = 0;						   // Current state
+	int frameIdx = 0;					   // Current frame
+	float frameTime = 0.f;				   // Accumulated time
+	int row = 0;						   // Current line (direction)
+	Direction direction = Direction::Down; // Current direction
 };
 
+/**
+ * @brief Component defining visual representation of an entity.
+ */
 struct Renderable {
-	std::string textureName; // used to get texture from your Texture manager
-	sf::IntRect textureRect; // base rect for frame 0
+	std::string textureName; // Used to get texture from your Texture manager
+	sf::IntRect textureRect; // Base rect for frame 0
 	sf::Vector2f targetSize;
 	sf::Color color = sf::Color::White;
 };
 
-// tag for an entity that should cast shadow
+/**
+ * @brief Tag component indicating an entity should cast a shadow.
+ */
 struct CastsShadow {};
 
-// tag for an NPC that is chasing the player
+/**
+ * @brief Tag component for NPC entities that chase the player.
+ */
 struct ChasingPlayer {};
 
-// tag component to identify which entity controlled by user
+/**
+ * @brief Tag component identifying player-controlled entities.
+ */
 struct PlayerControlled {};
 
 } // namespace engine

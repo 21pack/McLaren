@@ -12,22 +12,31 @@
 
 namespace engine {
 
+/**
+ * @brief Container for all render data collected during a single frame.
+ *
+ * Holds all the visual information needed to render a complete frame,
+ * including sprites, vertices, and camera settings.
+ */
 struct RenderFrame {
-	sf::View cameraView;
-	sf::Color clearColor = sf::Color::Black;
+	sf::View cameraView;					 ///< Camera view settings for this frame
+	sf::Color clearColor = sf::Color::Black; ///< Background color for the frame
 
+	/**
+	 * @brief Data structure for individual sprite rendering.
+	 */
 	struct SpriteData {
-		const sf::Image *image = nullptr;	  // pointer to the image
-		sf::IntRect textureRect;			  // texture area
-		sf::Vector2f position;				  // position in world coordinates
-		sf::Angle rotation = sf::Angle::Zero; // turn
-		sf::Vector2f scale = {1.f, 1.f};	  // scale
-		sf::Color color = sf::Color::White;	  // sprite color
+		const sf::Image *image = nullptr; ///< Pointer to the source image texture
+		sf::IntRect textureRect; ///< Texture coordinates for sprite sampling
+		sf::Vector2f position;	 ///< World position of the sprite
+		sf::Angle rotation = sf::Angle::Zero; ///< Rotation angle of the sprite
+		sf::Vector2f scale = {1.f, 1.f};	  ///< Scale factors for the sprite
+		sf::Color color = sf::Color::White;	  ///< Color tint applied to the sprite
 	};
 
-	sf::VertexArray shadowVertices;
-	std::vector<SpriteData> sprites;
-	sf::VertexArray tileVertices;
+	sf::VertexArray shadowVertices;	 ///< Vertex data for shadow rendering
+	std::vector<SpriteData> sprites; ///< Collection of sprites to render this frame
+	sf::VertexArray tileVertices;	 ///< Vertex data for tile-based rendering
 };
 
 } // namespace engine
