@@ -76,4 +76,18 @@ entt::entity createNPC(entt::registry &registry, const sf::Vector2f &pos,
 					   const std::unordered_map<int, engine::AnimationClip> &clips,
 					   float speed);
 
+/**
+ * @brief Creates a new static object entity with specified parameters.
+ * @param registry Reference to the ECS registry.
+ * @param pos Initial position of the object.
+ * @param targetSize Render size of the object.
+ * @param textureName Texture name of the object.
+ * @param textureRect Texture rectangle of the object.
+ * @return Entity handle for the created static object.
+ */
+entt::entity createStaticObject(entt::registry &registry, const sf::Vector2f &pos,
+								const sf::Vector2f &targetSize,
+								const std::string &textureName,
+								const sf::IntRect &textureRect);
+
 } // namespace systems

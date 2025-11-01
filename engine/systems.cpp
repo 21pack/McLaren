@@ -95,7 +95,6 @@ void animationSystem(entt::registry &registry, float dt) {
 			continue;
 
 		const auto &clip = it->second;
-
 		if (clip.frameCount <= 1)
 			continue;
 
@@ -137,18 +136,21 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 			continue;
 		}
 
-		auto &anim = registry.get<Animation>(entity);
+		const auto *anim = registry.try_get<const Animation>(entity);
 		const auto *rot = registry.try_get<const Rotation>(entity);
 
 		sf::IntRect currentFrameRect = render.textureRect;
 		const sf::Image *entityImage = &imageManager.getImage(render.textureName);
 
-		if (!anim.clips.empty()) {
-			const auto &clip = anim.clips.at(anim.state);
-			entityImage = &imageManager.getImage(clip.texture);
-
-			currentFrameRect.position.x += currentFrameRect.size.x * anim.frameIdx;
-			currentFrameRect.position.y += currentFrameRect.size.y * anim.row;
+		if (anim && !anim->clips.empty()) {
+			auto it = anim->clips.find(anim->state);
+			if (it != anim->clips.end()) {
+				const auto &clip = it->second;
+				entityImage = &imageManager.getImage(clip.texture);
+				currentFrameRect.position.x +=
+					currentFrameRect.size.x * anim->frameIdx;
+				currentFrameRect.position.y += currentFrameRect.size.y * anim->row;
+			}
 		}
 
 		// calculate content rect in case spritesheet with paddings.
@@ -341,6 +343,24 @@ entt::entity createNPC(entt::registry &registry, const sf::Vector2f &pos,
 	anim.clips = clips;
 	anim.state = clips.begin()->first;
 	registry.emplace<Animation>(e, std::move(anim));
+
+	return e;
+}
+
+entt::entity createStaticObject(entt::registry &registry, const sf::Vector2f &pos,
+								const sf::Vector2f &targetSize,
+								const std::string &textureName,
+								const sf::IntRect &textureRect) {
+	auto e = registry.create();
+	registry.emplace<Position>(e, pos);
+	registry.emplace<Velocity>(e, sf::Vector2f{0.f, 0.f});
+	registry.emplace<Speed>(e, 0.f);
+
+	Renderable render;
+	render.textureName = textureName;
+	render.textureRect = textureRect;
+	render.targetSize = targetSize;
+	registry.emplace<Renderable>(e, std::move(render));
 
 	return e;
 }
