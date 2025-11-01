@@ -1,10 +1,11 @@
-#include "systems.h"
-#include "camera.h"
-#include "components.h"
-#include "image_manager.h"
-#include "input.h"
-#include "render_frame.h"
-#include "utils.h"
+#include "ecs/systems.h"
+
+#include "core/camera.h"
+#include "core/input.h"
+#include "core/render_frame.h"
+#include "ecs/components.h"
+#include "ecs/utils.h"
+#include "resources/image_manager.h"
 #include <cmath>
 #include <random>
 

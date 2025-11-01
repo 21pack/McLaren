@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render_frame.h"
+#include "core/render_frame.h"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/Window/VideoMode.hpp>
 #include <mutex>

@@ -1,4 +1,4 @@
-#include "camera.h"
+#include "core/camera.h"
 #include "gtest/gtest.h"
 
 const float TOLERANCE = 0.0001f;

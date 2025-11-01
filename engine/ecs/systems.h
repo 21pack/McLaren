@@ -1,7 +1,7 @@
 #pragma once
 
-#include "components.h"
-#include "tile.h"
+#include "ecs/components.h"
+#include "ecs/tile.h"
 #include <entt/entt.hpp>
 
 namespace engine {

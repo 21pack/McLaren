@@ -1,5 +1,5 @@
-#include "components.h"
-#include "systems.h"
+#include "ecs/components.h"
+#include "ecs/systems.h"
 #include "gtest/gtest.h"
 #include <entt/entt.hpp>
 

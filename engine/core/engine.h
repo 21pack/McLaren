@@ -1,10 +1,10 @@
 #pragma once
 
-#include "camera.h"
-#include "image_manager.h"
-#include "input.h"
-#include "loop.h"
-#include "render.h"
+#include "core/camera.h"
+#include "core/input.h"
+#include "core/loop.h"
+#include "core/render.h"
+#include "resources/image_manager.h"
 
 namespace engine {
 
