@@ -37,22 +37,44 @@ void GameLoop::init() {
 	m_engine->camera.position = screenCenter;
 
 	// Generate tiles once
+
 	auto &imageManager = m_engine->imageManager;
 	std::unordered_map<int, engine::TileData> tileImages;
 	for (auto keyvalue : tileTextures) {
 		int key = keyvalue.first;
 		auto tex = keyvalue.second;
-		if (tex.is_ground)
-			continue;
 		tileImages[key] = {&imageManager.getImage(tex.texture_src), tex.height};
 	}
 	const int tileWidth = 32.f;
 	const int tileHeight = 32.f;
 	m_engine->camera.setTileSize(tileWidth, tileHeight / 2);
 
-	// generateTileMap(tileImages);
+	std::vector<engine::Tile> staticTiles = tiles;
+	for (int y = 0; y < height; ++y) {
+		for (int x = 0; x < width; ++x) {
+			const auto &tile = tiles[y * width + x];
+			std::vector<int> groundLayers;
+
+			for (int key : tile.layerIds) {
+				const auto &texInfo = tileTextures.at(key);
+
+				if (texInfo.is_ground) {
+					groundLayers.push_back(key);
+				} else {
+					sf::Vector2f worldPos = {(float)x + 2.f, (float)y + 1.f};
+
+					auto stObject = systems::createStaticObject(
+						m_registry, worldPos, {32.f, 32.f}, texInfo.texture_src,
+						sf::IntRect({0, 0}, {32, 32}));
+					m_registry.emplace<engine::CastsShadow>(stObject);
+				}
+			}
+			staticTiles[y * width + x].layerIds = std::move(groundLayers);
+		}
+	}
+
 	m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
-											 tiles, width, height, tileImages);
+											 staticTiles, width, height, tileImages);
 
 	// Creating entities (player, NPC, etc.)
 
@@ -96,7 +118,8 @@ void GameLoop::gameAnimationSystem(float dt) {
 				? 1
 				: 0;
 
-		if (anim.state != newState) {
+		if (anim.clips.find(newState) != anim.clips.end() &&
+			anim.state != newState) {
 			anim.state = newState;
 			anim.frameIdx = 0;
 			anim.frameTime = 0.f;

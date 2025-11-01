@@ -75,10 +75,10 @@
                 }
             },
             {
-                "posX": 12,
-                "posY": -12,
+                "posX": 11,
+                "posY": -10,
                 "sizeX": 1,
-                "sizeY": 25,
+                "sizeY": 2,
                 "tile": {
                     "textures_keys": [
                         3
@@ -87,9 +87,21 @@
                 }
             },
             {
-                "posX": -12,
-                "posY": 12,
-                "sizeX": 25,
+                "posX": 7,
+                "posY": -8,
+                "sizeX": 1,
+                "sizeY": 1,
+                "tile": {
+                    "textures_keys": [
+                        3
+                    ],
+                    "solid": true
+                }
+            }, 
+            {
+                "posX": 2,
+                "posY": 9,
+                "sizeX": 1,
                 "sizeY": 1,
                 "tile": {
                     "textures_keys": [
@@ -98,9 +110,6 @@
                     "solid": true
                 }
             }
-
-
-
         ]
     }
 }
