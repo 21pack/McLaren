@@ -8,28 +8,32 @@
                 "key": 3,
                 "value": {
                     "texture_src": "game/assets/tileset/tile_064.png",
-                    "height": 2
+                    "height": 2,
+                    "is_ground": false
                 }
             },
             {
                 "key": 2,
                 "value": {
                     "texture_src": "game/assets/tileset/tile_104.png",
-                    "height": -2
+                    "height": -2,
+                    "is_ground" : true
                 }
             },
             {
                 "key": 1,
                 "value": {
                     "texture_src": "game/assets/tileset/tile_000.png",
-                    "height": 0
+                    "height": 0,
+                    "is_ground" : true
                 }
             },
             {
                 "key": 0,
                 "value": {
                     "texture_src": "game/assets/tileset/tile_022.png",
-                    "height": 0
+                    "height": 0,
+                    "is_ground" : true
                 }
             }
         ],

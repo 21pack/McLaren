@@ -13,8 +13,9 @@ namespace engine {
 struct TileTexture {
 	std::string texture_src; ///< Path to the texture file
 	int height;				 ///< Height of the tile texture
+	bool is_ground;			 ///< Ground (true) / "2.5D" (false) flag 
 	template <class Archive> void serialize(Archive &ar) {
-		ar(CEREAL_NVP(texture_src), CEREAL_NVP(height));
+		ar(CEREAL_NVP(texture_src), CEREAL_NVP(height), CEREAL_NVP(is_ground));
 	}
 };
 

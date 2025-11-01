@@ -42,9 +42,10 @@ void GameLoop::init() {
 	for (auto keyvalue : tileTextures) {
 		int key = keyvalue.first;
 		auto tex = keyvalue.second;
+		if (tex.is_ground)
+			continue;
 		tileImages[key] = {&imageManager.getImage(tex.texture_src), tex.height};
 	}
-
 	const int tileWidth = 32.f;
 	const int tileHeight = 32.f;
 	m_engine->camera.setTileSize(tileWidth, tileHeight / 2);
