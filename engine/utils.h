@@ -4,6 +4,17 @@
 
 namespace engine {
 
+/**
+ * @brief Calculates the bounding rectangle of non-transparent content within a
+ * frame.
+ * @param image Source image to analyze.
+ * @param frameRect The frame rectangle within the image to check.
+ * @return IntRect representing the smallest rectangle containing non-transparent
+ * pixels.
+ *
+ * Scans the specified frame area and finds the minimal rectangle that contains
+ * all pixels with alpha value above the threshold.
+ */
 inline sf::IntRect calculateContentRect(const sf::Image &image,
 										sf::IntRect frameRect) {
 	int minX = frameRect.size.x;
