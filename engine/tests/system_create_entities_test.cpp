@@ -1,6 +1,6 @@
-#include "components.h"
-#include "engine.h"
-#include "systems.h"
+#include "core/engine.h"
+#include "ecs/components.h"
+#include "ecs/systems.h"
 #include "gtest/gtest.h"
 #include <entt/entt.hpp>
 #include <unordered_map>

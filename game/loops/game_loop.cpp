@@ -1,13 +1,12 @@
 #include "game_loop.h"
 
-#include "camera.h"
-#include "components.h"
-#include "engine.h"
-#include "image_manager.h"
-#include "render.h"
-#include "render_frame.h"
-#include "serializable_world.h"
-#include "systems.h"
+#include "core/camera.h"
+#include "core/engine.h"
+#include "core/render.h"
+#include "core/render_frame.h"
+#include "ecs/components.h"
+#include "ecs/systems.h"
+#include "resources/image_manager.h"
 #include <random>
 
 GameLoop::GameLoop() {

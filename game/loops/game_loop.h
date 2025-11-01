@@ -1,8 +1,8 @@
 #pragma once
 
-#include "loop.h"
-#include "serializable_world.h"
-#include "tile.h"
+#include "core/loop.h"
+#include "ecs/tile.h"
+#include "resources/serializable_world.h"
 #include <SFML/Graphics/VertexArray.hpp>
 #include <entt/entt.hpp>
 #include <vector>

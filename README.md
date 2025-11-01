@@ -58,9 +58,12 @@ sudo apt install \
 ### Build
 
 ```shell
-./scripts/build.sh
+./scripts/build.sh --release
 ```
-
+If you want to build without tests:
+```shell
+./scripts/build.sh --release --without-tests
+```
 ### Play
 
 ```shell

@@ -1,8 +1,8 @@
-#include "render.h"
+#include "core/render.h"
 
-#include "camera.h"
-#include "loop.h"
-#include "tile.h"
+#include "core/camera.h"
+#include "core/loop.h"
+#include "ecs/tile.h"
 #include <cmath>
 
 namespace engine {

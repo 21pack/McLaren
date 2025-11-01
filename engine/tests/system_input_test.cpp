@@ -1,6 +1,6 @@
-#include "components.h"
-#include "input.h"
-#include "systems.h"
+#include "core/input.h"
+#include "ecs/components.h"
+#include "ecs/systems.h"
 #include "gtest/gtest.h"
 #include <cmath>
 #include <entt/entt.hpp>
