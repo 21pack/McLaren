@@ -1,4 +1,4 @@
- #pragma once
+#pragma once
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Image.hpp>
@@ -7,8 +7,8 @@
 #include <SFML/Graphics/View.hpp>
 #include <SFML/System/Angle.hpp>
 #include <SFML/System/Vector2.hpp>
-#include <map>
 #include <atomic>
+#include <map>
 #include <vector>
 
 namespace engine {
@@ -33,8 +33,7 @@ struct RenderFrame {
 		sf::Angle rotation = sf::Angle::Zero; ///< Rotation angle of the sprite
 		sf::Vector2f scale = {1.f, 1.f};	  ///< Scale factors for the sprite
 		sf::Color color = sf::Color::White;	  ///< Color tint applied to the sprite
-		sf::VertexArray shadowVertices;		///< Vertex data for shadow rendering
-
+		sf::VertexArray shadowVertices;		  ///< Vertex data for shadow rendering
 	};
 
 	std::vector<SpriteData> sprites; ///< Collection of sprites to render this frame

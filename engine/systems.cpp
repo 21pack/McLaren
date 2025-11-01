@@ -124,7 +124,6 @@ void renderSystem(entt::registry &registry, RenderFrame &frame, const Camera &ca
 	const int shadowStep = 1;
 	const int pointSize = static_cast<int>(std::ceil(camera.zoom));
 
-
 	for (auto entity : view) {
 		sf::VertexArray shadowVertices;
 		shadowVertices.clear();

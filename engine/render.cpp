@@ -85,7 +85,6 @@ void Render::drawSprite(sf::RenderWindow &window,
 					sf::PrimitiveType::Points);
 }
 
-
 void Render::generateTileMapVertices(
 	sf::VertexArray &vertices, Camera &camera, const std::vector<Tile> &tiles,
 	int worldWidth, int worldHeight,
@@ -154,8 +153,7 @@ void Render::drawFrame(const RenderFrame &frame) {
 
 	// Draw sprites
 	for (auto &spr : frame.sprites) {
-
-			drawSprite(window, spr, 1);
-		}
+		drawSprite(window, spr, 1);
 	}
+}
 } // namespace engine
