@@ -6,28 +6,14 @@
 #include "core/render_frame.h"
 #include "ecs/components.h"
 #include "ecs/systems.h"
+#include "ecs/utils.h"
+#include "ecs/world_loader.h"
 #include "resources/image_manager.h"
 #include <random>
 
 GameLoop::GameLoop() {
-	engine::SerializableWorld world =
-		engine::of_json("game/assets/worlds/meadow.json");
-	height = world.world_height;
-	width = world.world_width;
-	tiles.resize(width * height);
-	tileTextures = world.textures;
-	auto getIndex = [&](int x, int y) {
-		return (y + height / 2) * width + (x + width / 2);
-	};
-	for (int i = 0; i < world.areas.size(); i++) {
-		auto a = world.areas[i];
-
-		for (int x = a.posX; x < a.posX + a.sizeX; ++x) {
-			for (int y = a.posY; y < a.posY + a.sizeY; ++y) {
-				tiles[getIndex(x, y)] = a.tile;
-			}
-		}
-	}
+	engine::WorldLoader::loadWorldFromJson("game/assets/worlds/meadow.json", width,
+										   height, tileTextures, tiles);
 }
 
 void GameLoop::init() {
@@ -36,18 +22,13 @@ void GameLoop::init() {
 	sf::Vector2f screenCenter = m_engine->camera.worldToScreen(worldCenter);
 	m_engine->camera.position = screenCenter;
 
-	// Generate tiles once
+	// Create and generate world tiles once
 
-	auto &imageManager = m_engine->imageManager;
-	std::unordered_map<int, engine::TileData> tileImages;
-	for (auto keyvalue : tileTextures) {
-		int key = keyvalue.first;
-		auto tex = keyvalue.second;
-		tileImages[key] = {&imageManager.getImage(tex.texture_src), tex.height};
-	}
 	const int tileWidth = 32.f;
 	const int tileHeight = 32.f;
 	m_engine->camera.setTileSize(tileWidth, tileHeight / 2);
+
+	auto tileImages = engine::makeTileData(tileTextures, m_engine->imageManager);
 
 	std::vector<engine::Tile> staticTiles = tiles;
 	for (int y = 0; y < height; ++y) {
@@ -76,7 +57,7 @@ void GameLoop::init() {
 	m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
 											 staticTiles, width, height, tileImages);
 
-	// Creating entities (player, NPC, etc.)
+	// Create entities (player, NPC, etc.)
 
 	sf::Vector2f targetWolfSize{64.f, 64.f};
 	sf::IntRect frameRect({0, 0}, {64, 64});
