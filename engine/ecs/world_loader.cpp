@@ -5,7 +5,7 @@ namespace engine {
 void WorldLoader::loadWorldFromJson(
 	const std::string &filename, int &width, int &height,
 	std::unordered_map<int, TileTexture> &tileTextures, std::vector<Tile> &tiles) {
-	SerializableWorld world = of_json("game/assets/worlds/meadow.json");
+	SerializableWorld world = of_json(filename);
 	height = world.world_height;
 	width = world.world_width;
 	tiles.resize(width * height);
