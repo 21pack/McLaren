@@ -1,6 +1,11 @@
 #pragma once
+
+#include "ecs/tile.h"
+#include "resources/image_manager.h"
+#include "resources/serializable_world.h"
 #include <SFML/Graphics.hpp>
 #include <algorithm>
+#include <unordered_map>
 
 namespace engine {
 
@@ -55,4 +60,26 @@ inline sf::IntRect calculateContentRect(const sf::Image &image,
 
 	return {{minX, minY}, {(maxX - minX) + 1, (maxY - minY) + 1}};
 }
+
+/**
+ * @brief Generates a mapping from tile IDs to their corresponding visual data.
+ * @param textures A map of tile IDs to their texture metadata (`TileTexture`).
+ * @param imgMgr Reference to the `ImageManager` used to load or retrieve textures.
+ * @return An unordered_map where each key is a tile ID and the value is a `TileData`
+ *         struct containing a pointer to the image and the tile's height.
+ */
+inline std::unordered_map<int, TileData>
+makeTileData(const std::unordered_map<int, TileTexture> &textures,
+			 ImageManager &imgMgr) {
+	std::unordered_map<int, TileData> tileImages;
+
+	for (auto keyvalue : textures) {
+		int key = keyvalue.first;
+		auto tex = keyvalue.second;
+		tileImages[key] = {&imgMgr.getImage(tex.texture_src), tex.height};
+	}
+
+	return tileImages;
+}
+
 } // namespace engine
