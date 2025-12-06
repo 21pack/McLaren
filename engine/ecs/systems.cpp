@@ -66,8 +66,8 @@ void movementSystem(entt::registry &registry, std::vector<engine::Tile> &tiles,
 		sf::Vector2f delta = vel.value * speed.value * dt;
 
 		auto canMove = [&](float newX, float newY) {
-			int tileX = static_cast<int>(newX) - 1;
-			int tileY = static_cast<int>(newY);
+			int tileX = static_cast<int>(std::floor(newX)) - 1;
+			int tileY = static_cast<int>(std::floor(newY));
 			if (tileX < 0 || tileX >= worldWidth || tileY < 0 ||
 				tileY >= worldHeight)
 				return false;
