@@ -91,9 +91,9 @@ class GameLoop : public engine::ILoop {
 	int width;	///< World width in tile units
 	int height; ///< World height in tile units
 	std::unordered_map<int, engine::TileTexture>
-		tileTextures;				   ///< Tile ID to texture data mapping
-	sf::VertexArray m_staticMapPoints; ///< Pre-computed vertex data for static
-									   ///< ground layer rendering
+		tileTextures;						   ///< Tile ID to texture data mapping
+	std::vector<sf::VertexArray> m_tileMeshes; ///< Pre-computed vertex data for
+											   ///< static ground layer rendering
 	std::vector<engine::Tile>
 		tiles; ///< Tile data representing world layout, collision, and layers
 };
