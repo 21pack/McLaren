@@ -86,27 +86,33 @@ void Render::drawSprite(sf::RenderWindow &window,
 }
 
 void Render::generateTileMapVertices(
-	sf::VertexArray &vertices, Camera &camera, const std::vector<Tile> &tiles,
-	int worldWidth, int worldHeight,
+	std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
+	const std::vector<Tile> &tiles, int worldWidth, int worldHeight,
 	std::unordered_map<int, engine::TileData> &tileImages) {
 	sf::Vector2f tileSize = camera.getTileSize();
 	float tileWidth = tileSize.x;
 	float tileHeight = tileSize.y * 2.f;
 
 	camera.setTileSize(tileWidth, tileHeight / 2);
-	vertices.setPrimitiveType(sf::PrimitiveType::Points);
+
 	const int step = 1; // If want to make draw faster, you can increase it
-
-	vertices.clear();
-
-	auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
-
 	float zoom = camera.zoom;
 	int pointSize = static_cast<int>(std::ceil(zoom));
 
+	tileMeshes.clear();
+	tileMeshes.resize(worldWidth * worldHeight);
+
+	auto getIndex = [&](int x, int y) { return y * worldWidth + x; };
+
 	for (int y = 0; y < worldHeight; ++y) {
 		for (int x = 0; x < worldWidth; ++x) {
-			const auto &tile = tiles[getIndex(x, y)];
+			int index = getIndex(x, y);
+
+			sf::VertexArray &mesh = tileMeshes[index];
+			mesh.setPrimitiveType(sf::PrimitiveType::Points);
+			mesh.clear();
+
+			const auto &tile = tiles[index];
 			sf::Vector2f isoVec = camera.worldToScreen({(float)x, (float)y});
 
 			for (int layerId : tile.layerIds) {
@@ -124,19 +130,53 @@ void Render::generateTileMapVertices(
 							continue;
 
 						sf::Color color =
-							tileImage.getPixel({(unsigned int)tx, (unsigned int)ty});
+							tileImage.getPixel({(unsigned)tx, (unsigned)ty});
 						if (color.a == 0)
 							continue;
 
-						float pixelX = isoVec.x + (static_cast<float>(tx) * zoom);
-						float pixelY = isoVec.y + (static_cast<float>(ty) * zoom) -
-									   (static_cast<float>(layerHeight) * zoom);
+						float pixelX = isoVec.x + tx * zoom;
+						float pixelY = isoVec.y + ty * zoom - layerHeight * zoom;
 
 						for (int dy = 0; dy < pointSize; ++dy) {
 							for (int dx = 0; dx < pointSize; ++dx) {
-								vertices.append({{pixelX + dx, pixelY + dy}, color});
+								mesh.append({{pixelX + dx, pixelY + dy}, color});
 							}
 						}
+					}
+				}
+			}
+		}
+	}
+}
+
+void Render::renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
+					   const sf::Vector2i wordSize, sf::VertexArray &tileVertices) {
+	tileVertices.clear();
+	tileVertices.setPrimitiveType(sf::PrimitiveType::Points);
+
+	sf::FloatRect cameraBounds = camera.getBounds();
+
+	sf::Vector2f rawTileSize = camera.getTileSize();
+
+	// Constants (10.f) is needed to account for tile overlapping
+	float scaledTileW = rawTileSize.x * camera.zoom + 10.f;
+	float scaledTileH = rawTileSize.y * 2.f * camera.zoom + 10.f;
+
+	for (int y = 0; y < wordSize.y; ++y) {
+		for (int x = 0; x < wordSize.x; ++x) {
+			sf::Vector2f tilePos = camera.worldToScreen({(float)x, (float)y});
+
+			sf::FloatRect tileBounds({tilePos.x, tilePos.y - scaledTileH},
+									 {scaledTileW, scaledTileH * 2.f});
+
+			if (tileBounds.findIntersection(cameraBounds).has_value()) {
+				int index = y * wordSize.x + x;
+
+				if (index < tileMeshes.size()) {
+					const sf::VertexArray &cachedMesh = tileMeshes[index];
+
+					for (std::size_t i = 0; i < cachedMesh.getVertexCount(); ++i) {
+						tileVertices.append(cachedMesh[i]);
 					}
 				}
 			}

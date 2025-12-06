@@ -54,7 +54,7 @@ void GameLoop::init() {
 		}
 	}
 
-	m_engine->render.generateTileMapVertices(m_staticMapPoints, m_engine->camera,
+	m_engine->render.generateTileMapVertices(m_tileMeshes, m_engine->camera,
 											 staticTiles, width, height, tileImages);
 
 	// Create entities (player, NPC, etc.)
@@ -128,7 +128,8 @@ void GameLoop::update(engine::Input &input, float dt) {
 void GameLoop::collectRenderData(engine::RenderFrame &frame,
 								 engine::Camera &camera) {
 	// Collecting static map texture
-	frame.tileVertices = m_staticMapPoints;
+	m_engine->render.renderMap(m_tileMeshes, camera, sf::Vector2i({width, height}),
+							   frame.tileVertices);
 
 	// Collecting entities
 	systems::renderSystem(m_registry, frame, camera, m_engine->imageManager);

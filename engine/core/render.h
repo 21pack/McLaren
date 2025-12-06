@@ -64,13 +64,27 @@ class Render {
 	 * @param tileImages Map of tile ID to tile visual data.
 	 */
 	void
-	generateTileMapVertices(sf::VertexArray &vertices, Camera &camera,
+	generateTileMapVertices(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
 							const std::vector<Tile> &tiles, int worldWidth,
 							int worldHeight,
 							std::unordered_map<int, engine::TileData> &tileImages);
 
 	sf::RenderWindow &getWindow() { return window; } ///< Gets the render window
 	void closeWindow() { window.close(); }			 ///< Closes the render window
+
+	/**
+	 * @brief Renders the visible portion of the tilemap by collecting cached
+	 * vertices.
+	 * @param tileMeshes A vector containing cached VertexArrays (arrays of vertices)
+	 * for each tile in the world.
+	 * @param camera Reference to the camera for culling calculations.
+	 * @param wordSize The dimensions of the tiled world (width and height in tiles).
+	 * @param tileVertices A reference to the target sf::VertexArray to which the
+	 * vertices of all visible tiles will be added. This array will be used for the
+	 * final rendering of the frame.
+	 */
+	void renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
+				   const sf::Vector2i wordSize, sf::VertexArray &tileVertices);
 
   private:
 	/**
