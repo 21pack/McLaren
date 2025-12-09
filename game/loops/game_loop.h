@@ -96,4 +96,10 @@ class GameLoop : public engine::ILoop {
 											   ///< static ground layer rendering
 	std::vector<engine::Tile>
 		tiles; ///< Tile data representing world layout, collision, and layers
+
+	sf::VertexArray m_visibleTileVertices;
+	sf::Vector2i m_worldSize;
+
+	sf::Vector2f m_lastCameraPosition;
+	float m_cameraMoveThreshold = 10.0f;
 };

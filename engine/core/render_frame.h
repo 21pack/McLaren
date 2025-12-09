@@ -37,7 +37,7 @@ struct RenderFrame {
 	};
 
 	std::vector<SpriteData> sprites; ///< Collection of sprites to render this frame
-	sf::VertexArray tileVertices;	 ///< Vertex data for tile-based rendering
+	const sf::VertexArray *tileVertices = nullptr;
 };
 
 } // namespace engine

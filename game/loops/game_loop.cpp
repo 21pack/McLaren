@@ -21,8 +21,9 @@ void GameLoop::init() {
 	sf::Vector2f worldCenter = {width / 2.0f, height / 2.0f};
 	sf::Vector2f screenCenter = m_engine->camera.worldToScreen(worldCenter);
 	m_engine->camera.position = screenCenter;
+	m_lastCameraPosition = m_engine->camera.position;
 
-	// Create and generate world tiles once
+	m_worldSize = {width, height};
 
 	const int tileWidth = 32.f;
 	const int tileHeight = 32.f;
@@ -56,6 +57,8 @@ void GameLoop::init() {
 
 	m_engine->render.generateTileMapVertices(m_tileMeshes, m_engine->camera,
 											 staticTiles, width, height, tileImages);
+
+	m_visibleTileVertices.setPrimitiveType(sf::PrimitiveType::Points);
 
 	// Create entities (player, NPC, etc.)
 
@@ -127,11 +130,18 @@ void GameLoop::update(engine::Input &input, float dt) {
 
 void GameLoop::collectRenderData(engine::RenderFrame &frame,
 								 engine::Camera &camera) {
-	// Collecting static map texture
-	m_engine->render.renderMap(m_tileMeshes, camera, sf::Vector2i({width, height}),
-							   frame.tileVertices);
+	float dx = std::abs(camera.position.x - m_lastCameraPosition.x);
+	float dy = std::abs(camera.position.y - m_lastCameraPosition.y);
 
-	// Collecting entities
+	if (dx > m_cameraMoveThreshold || dy > m_cameraMoveThreshold ||
+		m_visibleTileVertices.getVertexCount() == 0) {
+		m_engine->render.collectVisibleTiles(m_tileMeshes, camera, m_worldSize,
+											 m_visibleTileVertices);
+		m_lastCameraPosition = camera.position;
+	}
+
+	frame.tileVertices = &m_visibleTileVertices;
+
 	systems::renderSystem(m_registry, frame, camera, m_engine->imageManager);
 }
 

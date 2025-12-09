@@ -73,18 +73,11 @@ class Render {
 	void closeWindow() { window.close(); }			 ///< Closes the render window
 
 	/**
-	 * @brief Renders the visible portion of the tilemap by collecting cached
-	 * vertices.
-	 * @param tileMeshes A vector containing cached VertexArrays (arrays of vertices)
-	 * for each tile in the world.
-	 * @param camera Reference to the camera for culling calculations.
-	 * @param wordSize The dimensions of the tiled world (width and height in tiles).
-	 * @param tileVertices A reference to the target sf::VertexArray to which the
-	 * vertices of all visible tiles will be added. This array will be used for the
-	 * final rendering of the frame.
+	 * @brief Collects visible tiles into a vertex array based on camera position.
 	 */
-	void renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
-				   const sf::Vector2i wordSize, sf::VertexArray &tileVertices);
+	void collectVisibleTiles(const std::vector<sf::VertexArray> &tileMeshes,
+							 Camera &camera, const sf::Vector2i &worldSize,
+							 sf::VertexArray &outputVertices);
 
   private:
 	/**
@@ -95,6 +88,15 @@ class Render {
 	 */
 	void drawSprite(sf::RenderWindow &window, const RenderFrame::SpriteData &sprite,
 					int step);
+
+	struct VisibleTilesCache {
+		sf::FloatRect cameraBounds;
+		sf::VertexArray vertices;
+		bool valid = false;
+	};
+
+	VisibleTilesCache m_tileCache;
+	sf::Vector2i m_lastWorldSize;
 };
 
 /**

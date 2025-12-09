@@ -4,8 +4,8 @@
 #include "core/loop.h"
 #include "ecs/tile.h"
 #include <cmath>
-#include <iostream>
 #include <future>
+#include <iostream>
 
 namespace engine {
 
@@ -97,7 +97,7 @@ void Render::generateTileMapVertices(
 
 	camera.setTileSize(tileWidth, tileHeight / 2);
 
-	const int step = 1; // If want to make draw faster, you can increase it
+	const int step = 1;
 	float zoom = camera.zoom;
 	int pointSize = static_cast<int>(std::ceil(zoom));
 
@@ -151,159 +151,74 @@ void Render::generateTileMapVertices(
 	}
 }
 
-std::pair<sf::VertexArray, sf::FloatRect> renderMapHelper (std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
-					   const sf::Vector2i wordSize,
-					      sf::VertexArray &tileVertices, sf::FloatRect cameraBounds ) {
-	tileVertices.clear();
-	tileVertices.setPrimitiveType(sf::PrimitiveType::Points);
-		sf::Vector2f rawTileSize = camera.getTileSize();
+void Render::collectVisibleTiles(const std::vector<sf::VertexArray> &tileMeshes,
+								 Camera &camera, const sf::Vector2i &worldSize,
+								 sf::VertexArray &outputVertices) {
+	outputVertices.clear();
+	outputVertices.setPrimitiveType(sf::PrimitiveType::Points);
 
-	// Constants (10.f) is needed to account for tile overlapping
-	float scaledTileW = rawTileSize.x * camera.zoom + 10.f;
-	float scaledTileH = rawTileSize.y * 2.f * camera.zoom + 10.f;
-							for (int y = 0; y < wordSize.y; ++y) {
-		for (int x = 0; x < wordSize.x; ++x) {
+	sf::FloatRect cameraBounds = camera.getBounds();
+
+	float margin = 100.0f;
+	sf::FloatRect expandedBounds = {
+		{cameraBounds.position.x - margin, cameraBounds.position.y - margin},
+		{cameraBounds.size.x + 2 * margin, cameraBounds.size.y + 2 * margin}};
+
+	sf::Vector2f rawTileSize = camera.getTileSize();
+	float scaledTileW = rawTileSize.x * camera.zoom;
+	float scaledTileH = rawTileSize.y * 2.f * camera.zoom;
+
+	bool canReuseCache =
+		m_tileCache.valid && m_lastWorldSize == worldSize &&
+		std::abs(m_tileCache.cameraBounds.position.x - expandedBounds.position.x) <
+			50.0f &&
+		std::abs(m_tileCache.cameraBounds.position.y - expandedBounds.position.y) <
+			50.0f &&
+		std::abs(m_tileCache.cameraBounds.size.x - expandedBounds.size.x) < 50.0f &&
+		std::abs(m_tileCache.cameraBounds.size.y - expandedBounds.size.y) < 50.0f;
+
+	if (canReuseCache) {
+		outputVertices = m_tileCache.vertices;
+		return;
+	}
+
+	for (int y = 0; y < worldSize.y; ++y) {
+		for (int x = 0; x < worldSize.x; ++x) {
 			sf::Vector2f tilePos = camera.worldToScreen({(float)x, (float)y});
+			sf::FloatRect tileBounds = {{tilePos.x, tilePos.y - scaledTileH / 2},
+										{scaledTileW, scaledTileH}};
 
-			sf::FloatRect tileBounds({tilePos.x, tilePos.y - scaledTileH},
-									 {scaledTileW, scaledTileH * 2.f});
+			if (tileBounds.findIntersection(expandedBounds).has_value()) {
+				int index = y * worldSize.x + x;
 
-			if (tileBounds.findIntersection(cameraBounds).has_value()) {
-				int index = y * wordSize.x + x;
+				if (index >= 0 && index < (int)tileMeshes.size()) {
+					const sf::VertexArray &tileMesh = tileMeshes[index];
 
-				if (index < tileMeshes.size()) {
-					const sf::VertexArray &cachedMesh = tileMeshes[index];
-
-					for (std::size_t i = 0; i < cachedMesh.getVertexCount(); ++i) {
-						tileVertices.append(cachedMesh[i]);
+					for (std::size_t i = 0; i < tileMesh.getVertexCount(); ++i) {
+						outputVertices.append(tileMesh[i]);
 					}
 				}
 			}
 		}
-							}
-
-	return std::pair(tileVertices, cameraBounds);
-}
-
-std::optional<sf::VertexArray> curVertices = std::nullopt;
-std::optional<sf::FloatRect> curBounds = std::nullopt;
-auto preCalcs = std::vector<std::future< std::pair <sf::VertexArray, sf::FloatRect>>>();
-
-void Render::renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
-					   const sf::Vector2i wordSize, sf::VertexArray &tileVertices) {
-
-	// todo : zoom change handle 
-	
-	float align_coef = 0.25f;
-	sf::FloatRect cameraBoundsInit = camera.getBounds();
-	auto qXSide = cameraBoundsInit.size.x * align_coef;
-	auto qYSide=  cameraBoundsInit.size.y * align_coef;
-	sf::FloatRect cameraBounds = sf::FloatRect(
-		{cameraBoundsInit.position.x - qXSide, cameraBoundsInit.position.y - qYSide},
-		{cameraBoundsInit.size.x + qXSide + qXSide, cameraBoundsInit.size.y + qYSide + qYSide});
-
-	float diffx = 0.f;
-	float diffy = 0.f;
-
-	if (curBounds.has_value())
-					 {
-		diffx = curBounds.value().getCenter().x - camera.position.x;
-		diffy = curBounds.value().getCenter().y - camera.position.y;
-	}
-;
-
-	if (!curVertices.has_value()) {
-		std::future<void> f =
-			std::async(std::launch::async, [&tileMeshes, &camera, wordSize,
-											&tileVertices, cameraBounds]() {
-				auto _ = renderMapHelper(tileMeshes, camera, wordSize, tileVertices,
-										 cameraBounds);
-				return;
-			});
-		f.get(); // Wait for the async task to finish
-		curBounds = cameraBounds;
-		curVertices = tileVertices;
-	} else if (diffx <=  -qXSide  && diffy < 0 || diffy <= -qYSide && diffx < 0) {
-		auto pair = preCalcs[0].get();
-		curVertices = pair.first;
-		tileVertices = pair.first;
-		curBounds = pair.second;
-
-	} else if (diffx >=  qXSide && diffy > 0 || diffy >= qYSide && diffx > 0) {
-		auto pair = preCalcs[2].get();
-		curVertices = pair.first;
-		tileVertices = pair.first;
-		curBounds = pair.second;
-
-
-	} else if (diffx >=  qXSide && diffy < 0 || diffy <= -qYSide && diffx > 0) {
-		auto pair = preCalcs[1].get();
-		curVertices = pair.first;
-		tileVertices = pair.first;
-		curBounds = pair.second;
-
-
-	} else if (diffx <=  -qXSide && diffy > 0 || diffy >= qYSide && diffx < 0) {
-		auto pair = preCalcs[3].get();
-		curVertices = pair.first;
-		tileVertices = pair.first;
-		curBounds = pair.second;
-
-	}
-	else {
-		tileVertices = curVertices.value();
-		return;
-	};
-	preCalcs = std::vector<std::future<std::pair<sf::VertexArray, sf::FloatRect>>>();
-	sf::Vector2f center1 = sf::Vector2f(camera.position.x + qXSide,
-										camera.position.y + qYSide);
-	sf::Vector2f center2 = sf::Vector2f(camera.position.x+qXSide, camera.position.y-qYSide);
-	sf::Vector2f center3 = sf::Vector2f(camera.position.x-qXSide, camera.position.y-qYSide);
-	sf::Vector2f center4 = sf::Vector2f(camera.position.x-qXSide, camera.position.y+qYSide);
-	sf::Vector2f arr[] = {center1
-		, center2, center3,
-		 center4
-	};
-
-	;
-	for (sf::Vector2f c : arr) { // is there the order garanty?
-		
-
-		preCalcs.push_back(
-			std::async(
-
-			std::launch::async,
-
-			[&tileMeshes, &camera , wordSize, qXSide, qYSide, c ]() {
-
-				 {
-					 Camera cam;
-		cam.setTileSize(camera.getTileSize().x, camera.getTileSize().y);
-		cam.position = c;
-		cam.size = {camera.size.x +qXSide + qXSide, camera.size.y +qYSide + qYSide};
-		cam.zoom = camera.zoom;
-		auto ar = sf::VertexArray();
-		return renderMapHelper(tileMeshes, cam, wordSize, ar, cam.getBounds());
-				 }
-			}
-			))
-		;
 	}
 
+	m_tileCache.cameraBounds = expandedBounds;
+	m_tileCache.vertices =
+		outputVertices;
+	m_tileCache.valid = true;
+	m_lastWorldSize = worldSize;
 }
 
 void Render::drawFrame(const RenderFrame &frame) {
 	window.clear(frame.clearColor);
 	window.setView(frame.cameraView);
 
-	// Draw map
-	window.draw(frame.tileVertices);
+	if (frame.tileVertices) {
+		window.draw(*frame.tileVertices);
+	}
 
-	// Draw sprites
 	for (auto &spr : frame.sprites) {
 		drawSprite(window, spr, 1);
 	}
 }
 } // namespace engine
-
-
