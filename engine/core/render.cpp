@@ -4,6 +4,8 @@
 #include "core/loop.h"
 #include "ecs/tile.h"
 #include <cmath>
+#include <iostream>
+#include <future>
 
 namespace engine {
 
@@ -149,20 +151,17 @@ void Render::generateTileMapVertices(
 	}
 }
 
-void Render::renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
-					   const sf::Vector2i wordSize, sf::VertexArray &tileVertices) {
+std::pair<sf::VertexArray, sf::FloatRect> renderMapHelper (std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
+					   const sf::Vector2i wordSize,
+					      sf::VertexArray &tileVertices, sf::FloatRect cameraBounds ) {
 	tileVertices.clear();
 	tileVertices.setPrimitiveType(sf::PrimitiveType::Points);
-
-	sf::FloatRect cameraBounds = camera.getBounds();
-
-	sf::Vector2f rawTileSize = camera.getTileSize();
+		sf::Vector2f rawTileSize = camera.getTileSize();
 
 	// Constants (10.f) is needed to account for tile overlapping
 	float scaledTileW = rawTileSize.x * camera.zoom + 10.f;
 	float scaledTileH = rawTileSize.y * 2.f * camera.zoom + 10.f;
-
-	for (int y = 0; y < wordSize.y; ++y) {
+							for (int y = 0; y < wordSize.y; ++y) {
 		for (int x = 0; x < wordSize.x; ++x) {
 			sf::Vector2f tilePos = camera.worldToScreen({(float)x, (float)y});
 
@@ -181,7 +180,116 @@ void Render::renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
 				}
 			}
 		}
+							}
+
+	return std::pair(tileVertices, cameraBounds);
+}
+
+std::optional<sf::VertexArray> curVertices = std::nullopt;
+std::optional<sf::FloatRect> curBounds = std::nullopt;
+auto preCalcs = std::vector<std::future< std::pair <sf::VertexArray, sf::FloatRect>>>();
+
+void Render::renderMap(std::vector<sf::VertexArray> &tileMeshes, Camera &camera,
+					   const sf::Vector2i wordSize, sf::VertexArray &tileVertices) {
+
+	// todo : zoom change handle 
+	
+	float align_coef = 0.25f;
+	sf::FloatRect cameraBoundsInit = camera.getBounds();
+	auto qXSide = cameraBoundsInit.size.x * align_coef;
+	auto qYSide=  cameraBoundsInit.size.y * align_coef;
+	sf::FloatRect cameraBounds = sf::FloatRect(
+		{cameraBoundsInit.position.x - qXSide, cameraBoundsInit.position.y - qYSide},
+		{cameraBoundsInit.size.x + qXSide + qXSide, cameraBoundsInit.size.y + qYSide + qYSide});
+
+	float diffx = 0.f;
+	float diffy = 0.f;
+
+	if (curBounds.has_value())
+					 {
+		diffx = curBounds.value().getCenter().x - camera.position.x;
+		diffy = curBounds.value().getCenter().y - camera.position.y;
 	}
+;
+
+	if (!curVertices.has_value()) {
+		std::future<void> f =
+			std::async(std::launch::async, [&tileMeshes, &camera, wordSize,
+											&tileVertices, cameraBounds]() {
+				auto _ = renderMapHelper(tileMeshes, camera, wordSize, tileVertices,
+										 cameraBounds);
+				return;
+			});
+		f.get(); // Wait for the async task to finish
+		curBounds = cameraBounds;
+		curVertices = tileVertices;
+	} else if (diffx <=  -qXSide  && diffy < 0 || diffy <= -qYSide && diffx < 0) {
+		auto pair = preCalcs[0].get();
+		curVertices = pair.first;
+		tileVertices = pair.first;
+		curBounds = pair.second;
+
+	} else if (diffx >=  qXSide && diffy > 0 || diffy >= qYSide && diffx > 0) {
+		auto pair = preCalcs[2].get();
+		curVertices = pair.first;
+		tileVertices = pair.first;
+		curBounds = pair.second;
+
+
+	} else if (diffx >=  qXSide && diffy < 0 || diffy <= -qYSide && diffx > 0) {
+		auto pair = preCalcs[1].get();
+		curVertices = pair.first;
+		tileVertices = pair.first;
+		curBounds = pair.second;
+
+
+	} else if (diffx <=  -qXSide && diffy > 0 || diffy >= qYSide && diffx < 0) {
+		auto pair = preCalcs[3].get();
+		curVertices = pair.first;
+		tileVertices = pair.first;
+		curBounds = pair.second;
+
+	}
+	else {
+		tileVertices = curVertices.value();
+		return;
+	};
+	preCalcs = std::vector<std::future<std::pair<sf::VertexArray, sf::FloatRect>>>();
+	sf::Vector2f center1 = sf::Vector2f(camera.position.x + qXSide,
+										camera.position.y + qYSide);
+	sf::Vector2f center2 = sf::Vector2f(camera.position.x+qXSide, camera.position.y-qYSide);
+	sf::Vector2f center3 = sf::Vector2f(camera.position.x-qXSide, camera.position.y-qYSide);
+	sf::Vector2f center4 = sf::Vector2f(camera.position.x-qXSide, camera.position.y+qYSide);
+	sf::Vector2f arr[] = {center1
+		, center2, center3,
+		 center4
+	};
+
+	;
+	for (sf::Vector2f c : arr) { // is there the order garanty?
+		
+
+		preCalcs.push_back(
+			std::async(
+
+			std::launch::async,
+
+			[&tileMeshes, &camera , wordSize, qXSide, qYSide, c ]() {
+
+				 {
+					 Camera cam;
+		cam.setTileSize(camera.getTileSize().x, camera.getTileSize().y);
+		cam.position = c;
+		cam.size = {camera.size.x +qXSide + qXSide, camera.size.y +qYSide + qYSide};
+		cam.zoom = camera.zoom;
+		auto ar = sf::VertexArray();
+		return renderMapHelper(tileMeshes, cam, wordSize, ar, cam.getBounds());
+				 }
+			}
+			))
+		;
+	}
+
 }
 
 void Render::drawFrame(const RenderFrame &frame) {
@@ -197,3 +305,5 @@ void Render::drawFrame(const RenderFrame &frame) {
 	}
 }
 } // namespace engine
+
+
