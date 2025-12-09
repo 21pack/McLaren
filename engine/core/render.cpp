@@ -73,7 +73,7 @@ void Render::drawSprite(sf::RenderWindow &window,
 				for (int dx = 0; dx < pointSize; ++dx) {
 					sf::Vertex vertex;
 					vertex.position = sf::Vector2f(worldX + dx, worldY + dy);
-					vertex.color = texColor;
+					vertex.color = finalColor;
 					vertices.push_back(vertex);
 				}
 			}
