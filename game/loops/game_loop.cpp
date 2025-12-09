@@ -58,7 +58,8 @@ void GameLoop::init() {
 	m_engine->render.generateTileMapVertices(m_tileMeshes, m_engine->camera,
 											 staticTiles, width, height, tileImages);
 
-	m_visibleTileVertices.setPrimitiveType(sf::PrimitiveType::Points);
+	m_visibleTileVertices1.setPrimitiveType(sf::PrimitiveType::Points);
+	m_visibleTileVertices2.setPrimitiveType(sf::PrimitiveType::Points);
 
 	// Create entities (player, NPC, etc.)
 
@@ -134,13 +135,25 @@ void GameLoop::collectRenderData(engine::RenderFrame &frame,
 	float dy = std::abs(camera.position.y - m_lastCameraPosition.y);
 
 	if (dx > m_cameraMoveThreshold || dy > m_cameraMoveThreshold ||
-		m_visibleTileVertices.getVertexCount() == 0) {
-		m_engine->render.collectVisibleTiles(m_tileMeshes, camera, m_worldSize,
-											 m_visibleTileVertices);
+		(m_visibleTileVertices1.getVertexCount() == 0 &&
+		 m_visibleTileVertices2.getVertexCount() == 0)) {
+		if (m_visibleTileVerticesTurn) {
+			m_engine->render.collectVisibleTiles(m_tileMeshes, camera, m_worldSize,
+												 m_visibleTileVertices1);
+		} else {
+			m_engine->render.collectVisibleTiles(m_tileMeshes, camera, m_worldSize,
+												 m_visibleTileVertices2);
+		}
+
+		m_visibleTileVerticesTurn = !m_visibleTileVerticesTurn;
 		m_lastCameraPosition = camera.position;
 	}
 
-	frame.tileVertices = &m_visibleTileVertices;
+	if (!m_visibleTileVerticesTurn) {
+		frame.tileVertices = &m_visibleTileVertices1;
+	} else {
+		frame.tileVertices = &m_visibleTileVertices2;
+	}
 
 	systems::renderSystem(m_registry, frame, camera, m_engine->imageManager);
 }

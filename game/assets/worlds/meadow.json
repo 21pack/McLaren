@@ -1,8 +1,8 @@
 {
     "world": {
         "cereal_class_version": 0,
-        "world_height": 65,
-        "world_width": 65,
+        "world_height": 250,
+        "world_width": 250,
         "textures": [
             {
                 "key": 3,
@@ -39,10 +39,10 @@
         ],
         "areas": [
             {
-                "posX": -32,
-                "posY": -32,
-                "sizeX": 65,
-                "sizeY": 65,
+                "posX": -125,
+                "posY": -125,
+                "sizeX": 250,
+                "sizeY": 250,
                 "tile": {
                     "textures_keys": [
                         0

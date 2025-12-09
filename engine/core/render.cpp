@@ -156,7 +156,6 @@ void Render::collectVisibleTiles(const std::vector<sf::VertexArray> &tileMeshes,
 								 sf::VertexArray &outputVertices) {
 	outputVertices.clear();
 	outputVertices.setPrimitiveType(sf::PrimitiveType::Points);
-
 	sf::FloatRect cameraBounds = camera.getBounds();
 
 	float margin = 100.0f;
@@ -203,8 +202,7 @@ void Render::collectVisibleTiles(const std::vector<sf::VertexArray> &tileMeshes,
 	}
 
 	m_tileCache.cameraBounds = expandedBounds;
-	m_tileCache.vertices =
-		outputVertices;
+	m_tileCache.vertices = outputVertices;
 	m_tileCache.valid = true;
 	m_lastWorldSize = worldSize;
 }
